@@ -1,0 +1,76 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Great+Vibes&family=Marcellus&family=Josefin+Sans:wght@300;400;600&family=Lora:ital,wght@0,400;0,600;1,400&family=Amiri:ital@0;1&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+  /* Tema undangan menyetel --font-heading sendiri. */
+  :root {
+    --font-heading: "Playfair Display", ui-serif, serif;
+  }
+  * {
+    scrollbar-width: thin;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* Motif batik sederhana dari gradien berulang. */
+  .pattern-batik {
+    background-image:
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.06) 0 2px, transparent 2px),
+      repeating-linear-gradient(
+        45deg,
+        rgba(120, 80, 40, 0.06) 0 10px,
+        transparent 10px 20px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        rgba(120, 80, 40, 0.06) 0 10px,
+        transparent 10px 20px
+      );
+  }
+  .pattern-marble {
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(148, 163, 184, 0.18) 0, transparent 45%),
+      radial-gradient(circle at 80% 0%, rgba(203, 213, 225, 0.25) 0, transparent 40%),
+      radial-gradient(circle at 60% 90%, rgba(148, 163, 184, 0.15) 0, transparent 45%),
+      linear-gradient(140deg, #f8fafc, #eef2f6 40%, #e2e8f0);
+  }
+  .pattern-grid {
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .pattern-weave {
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        rgba(120, 53, 15, 0.05) 0 2px,
+        transparent 2px 12px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        rgba(120, 53, 15, 0.05) 0 2px,
+        transparent 2px 12px
+      );
+  }
+}
