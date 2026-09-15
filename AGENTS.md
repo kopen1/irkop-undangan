@@ -185,13 +185,30 @@ Kerjakan berurutan. Jangan lompat ke §7.4 sebelum §7.2 selesai.
    - `SUPABASE_ANON_KEY`
    - `APP_URL=auto`
 4. Deploy. Cek apakah `functions/` otomatis terdeteksi di tab Functions.
-5. Verifikasi SPA fallback: `/app`, `/login`, `/pricing` harus balas 200 (bukan 404).
-   Kalau 404, tambahkan `_redirects` berisi `/* /index.html 200` di folder `public/`
-   (kecuali path yang ditangani Functions).
-6. Verifikasi Pages Function: buka `https://<project>.pages.dev/<slug-undangan>` dan
+5. **JANGAN menambahkan `public/_redirects`.** Cloudflare Pages sudah melakukan SPA
+   fallback otomatis: "If your project does not include a top-level `404.html` file,
+   Pages assumes that you are deploying a single-page application... matches all
+   incoming paths to the root (`/`)". Build kita hanya menghasilkan `dist/index.html`,
+   jadi `/app`, `/login`, dan `/:slug` sudah dilayani tanpa konfigurasi tambahan.
+   `_redirects` tidak berlaku untuk request yang dipegang Pages Function, jadi menambah
+   `/* /index.html 200` tidak memberi manfaat apa pun, hanya menambah permukaan risiko.
+
+   **Jebakan:** menambahkan `public/404.html` akan **mematikan** SPA fallback otomatis
+   itu. Kalau nanti butuh halaman 404 kustom, fallback harus dipasang manual
+   (`_redirects` atau Function), dan harus diuji ulang.
+
+6. Verifikasi SPA fallback: `/app`, `/login`, `/pricing`, dan `/<slug-undangan>` harus
+   balas 200 (bukan 404). Kalau 404, cek dulu apakah ada `404.html` di `dist/`.
+7. Verifikasi Pages Function: buka `https://<project>.pages.dev/<slug-undangan>` dan
    pastikan `<meta property="og:image">` terisi. Kalau Functions tidak jalan, cek
    bahwa `functions/` ada di root repo dan env `SUPABASE_URL`/`SUPABASE_ANON_KEY`
    sudah diisi.
+8. **Kuota Functions.** Begitu ada folder `functions/`, semua request secara default
+   memanggil Function, termasuk request ke `/assets/*`. Cloudflare otomatis membuat
+   `_routes.json` saat mendeteksi folder `functions/`, jadi static asset seharusnya
+   sudah dikecualikan. Verifikasi di output build/deploy bahwa `_routes.json` terbentuk
+   dan `exclude` berisi `/assets/*`. Kalau tidak terbentuk, buat sendiri di
+   `public/_routes.json` dengan `include: ["/*"]` dan `exclude: ["/assets/*", "/favicon.svg"]`.
 
 ### 7.3 Domain
 
@@ -301,6 +318,10 @@ lewat REST/API seperti yang sudah dilakukan pada pengujian sebelumnya.
 - Kuota undangan ditegakkan di sisi klien, belum ada constraint di database.
 - `preview_image` tema masih kosong; galeri memakai mockup CSS, bukan screenshot.
 - Belum ada halaman reset password walau Supabase sudah mendukungnya.
+- Belum ada `robots.txt` / `noindex`. Undangan bersifat privat per pasangan, jadi
+  sebaiknya halaman `/:slug` tidak diindeks mesin pencari. Perlu diputuskan apakah
+  memakai `public/robots.txt` dengan `Disallow: /` atau menambahkan
+  `<meta name="robots" content="noindex">` di halaman undangan saja.
 
 ## 11. Rahasia & file `.env`
 
