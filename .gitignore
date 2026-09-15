@@ -2,9 +2,9 @@ node_modules
 dist
 dist-ssr
 *.local
-# .env ikut ter-commit dan hanya berisi nilai non-rahasia (URL + anon key Supabase,
-# yang memang terkirim ke browser). Rahasia seperti SUPABASE_DB_PASSWORD disimpan di
-# .env.local yang di-ignore lewat pola di bawah.
+# Kredensial tidak di-commit. .env dipakai untuk build/dev lokal; di produksi
+# isi lewat Environment Variables Cloudflare Pages (lihat AGENTS.md).
+.env
 .env.*
 !.env.example
 .DS_Store
