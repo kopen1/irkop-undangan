@@ -2,7 +2,9 @@ node_modules
 dist
 dist-ssr
 *.local
-.env
+# .env ikut ter-commit dan hanya berisi nilai non-rahasia (URL + anon key Supabase,
+# yang memang terkirim ke browser). Rahasia seperti SUPABASE_DB_PASSWORD disimpan di
+# .env.local yang di-ignore lewat pola di bawah.
 .env.*
 !.env.example
 .DS_Store

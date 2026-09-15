@@ -12,6 +12,8 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const envPath = resolve(root, ".env");
+/** `.env.local` tidak ikut ter-commit — dipakai untuk menimpa nilai rahasia. */
+const localEnvPath = resolve(root, ".env.local");
 
 function parseEnv(text) {
   const result = {};
@@ -38,13 +40,17 @@ if (!existsSync(envPath)) {
   process.exit(1);
 }
 
-const env = parseEnv(readFileSync(envPath, "utf8"));
+const env = {
+  ...parseEnv(readFileSync(envPath, "utf8")),
+  ...(existsSync(localEnvPath) ? parseEnv(readFileSync(localEnvPath, "utf8")) : {}),
+};
 
 const password = env.SUPABASE_DB_PASSWORD;
 if (!password) {
   console.error(
-    "SUPABASE_DB_PASSWORD masih kosong di .env.\n" +
-      "Isi dulu di Supabase Dashboard > Project Settings > Database.",
+    "SUPABASE_DB_PASSWORD belum diisi.\n" +
+      "Simpan di .env.local (tidak ikut ter-commit) atau isi langsung di .env.\n" +
+      "Nilainya ada di Supabase Dashboard > Project Settings > Database.",
   );
   process.exit(1);
 }

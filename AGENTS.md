@@ -165,7 +165,8 @@ Kerjakan berurutan. Jangan lompat ke §7.4 sebelum §7.2 selesai.
 
 - Akses repo GitHub dan akun Cloudflare.
 - Kredensial Supabase (URL, anon key, database password, project ref).
-- `.env` **tidak** di-commit (lihat `.gitignore`). Buat dari `.env.example`.
+- `.env` sudah ter-commit dan terisi (lihat §11). `SUPABASE_DB_PASSWORD` disimpan di
+  `.env.local` yang tidak ikut ter-commit — minta nilainya ke pemilik repo.
 
 ### 7.2 Cloudflare Pages
 
@@ -272,7 +273,8 @@ Baca sebelum debug — semuanya nyata dan sudah diperbaiki sekali.
 6. **`key` tema di `theme-tokens.ts` harus sama persis dengan kolom `themes.key`.**
    Ketidaksamaan tidak memunculkan error, hanya jatuh ke tema default. Ada pemeriksaan
    manual di `check-themes` (lihat §9).
-7. **Jangan commit `.env`.** Anon key aman untuk publik, tapi database password tidak.
+7. **Rahasia hanya di `.env.local`, bukan `.env`.** `.env` ikut ter-commit dan isinya
+   terkirim ke browser; `.env.local` di-ignore. Lihat §11.
 
 ## 9. Perintah
 
@@ -299,3 +301,34 @@ lewat REST/API seperti yang sudah dilakukan pada pengujian sebelumnya.
 - Kuota undangan ditegakkan di sisi klien, belum ada constraint di database.
 - `preview_image` tema masih kosong; galeri memakai mockup CSS, bukan screenshot.
 - Belum ada halaman reset password walau Supabase sudah mendukungnya.
+
+## 11. Rahasia & file `.env`
+
+Aturan pembagiannya:
+
+| File | Status | Isi |
+|---|---|---|
+| `.env` | **di-commit** | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_APP_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `APP_URL` |
+| `.env.local` | di-ignore (`.env.*`) | `SUPABASE_DB_PASSWORD` |
+| `.env.example` | di-commit | placeholder, untuk dokumentasi |
+
+Nilai di `.env` memang **bukan rahasia**: anon key Supabase ikut ter-bundle ke
+JavaScript yang dikirim ke browser, dan RLS-lah yang membatasi aksesnya. Amannya
+menyimpannya di repo untuk kemudahan setup.
+
+`SUPABASE_DB_PASSWORD` berbeda kelas: password itu memberi akses penuh ke Postgres dan
+**melewati seluruh RLS**. Nilainya disimpan di `.env.local`.
+`scripts/db-push.mjs` membaca `.env` lalu menimpanya dengan `.env.local`, jadi
+`npm run db:push` tetap jalan tanpa password ada di git.
+
+Aturan untuk perubahan berikutnya:
+
+- Rahasia baru (service role key, secret payment gateway, dsb.) → `.env.local`, **jangan**
+  `.env`.
+- Domain `irkop.eu.org` dan project ini terikat ke pemilik repo. Kalau repo dibuat
+  publik, jangan pernah menambahkan rahasia ke `.env`.
+- Kalau ada rahasia yang terlanjur masuk history git: rotasi kredensialnya lebih dulu
+  (Supabase → Project Settings → Database → Reset password), baru bersihkan history
+  dengan `git filter-repo`. History permanen — rotasi tetap wajib.
+- Untuk produksi, kredensial cukup diisi sebagai environment variables Cloudflare
+  Pages; tidak perlu ada di repo sama sekali.
