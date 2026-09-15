@@ -1,8 +1,9 @@
-import { useState, type CSSProperties } from "react";
+import { Fragment, useState, type CSSProperties } from "react";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getThemeTokens } from "../../../lib/theme-tokens";
-import { planHasFeature } from "../../../lib/types";
+import { getThemeTokens, type ThemeLayout } from "../../../lib/theme-tokens";
+import { DEFAULT_MUSIC } from "../../../lib/constants";
+import { planHasFeature, type CoverStyle, type SectionBackground, type SectionConfig, type SectionKey } from "../../../lib/types";
 import { cn } from "../../../lib/utils";
 import {
   ClosingBlock,
@@ -12,14 +13,28 @@ import {
   Footer,
   GalleryBlock,
   GiftBlock,
+  ThemeProvider,
   MusicPlayer,
   OpeningBlock,
   RsvpBlock,
+  SocialBlock,
   StoryBlock,
   WishesBlock,
 } from "./common";
 import { Ornament } from "./ornaments";
 import type { ThemeProps } from "./theme-types";
+
+function defaultCover(layout: ThemeLayout): CoverStyle {
+  if (layout === "editorial") return "full";
+  if (layout === "framed") return "framed";
+  return "centered";
+}
+
+function defaultBackground(id: SectionKey): SectionBackground {
+  if (id === "events" || id === "wishes") return "dark";
+  if (id === "gift" || id === "rsvp") return "soft";
+  return "none";
+}
 
 export default function ThemeRenderer({
   invitation,
@@ -37,11 +52,92 @@ export default function ThemeRenderer({
   const canMusic = planHasFeature(invitation.plan, "custom_music");
   const canGift = planHasFeature(invitation.plan, "amplop_digital");
   const canGallery = planHasFeature(invitation.plan, "galeri");
+  const canCouplePhoto = planHasFeature(invitation.plan, "foto_mempelai");
+  const canSocial = planHasFeature(invitation.plan, "sosial_media");
+  const layout = tokens.layout ?? "floral";
+  const cover: CoverStyle = content.layout.cover ?? tokens.coverStyle ?? defaultCover(layout);
   const names = [invitation.groom_name, invitation.bride_name].filter(Boolean).join(" & ");
 
   const style = {
     "--font-heading": tokens.heading,
   } as CSSProperties;
+
+  const renderSection = (section: SectionConfig) => {
+    switch (section.id) {
+      case "opening":
+        return <OpeningBlock content={content} />;
+      case "couple":
+        return (
+          <CoupleBlock
+            invitation={invitation}
+            initial="Putra & Putri"
+            groomPhoto={canCouplePhoto ? content.groom_photo : ""}
+            bridePhoto={canCouplePhoto ? content.bride_photo : ""}
+          />
+        );
+      case "social":
+        return canSocial && content.socials.length > 0 ? (
+          <SocialBlock socials={content.socials} />
+        ) : null;
+      case "events":
+        return (
+          <EventsBlock content={content} eventDate={invitation.event_date} variant={section.variant} />
+        );
+      case "story":
+        return <StoryBlock content={content} />;
+      case "gallery":
+        return canGallery ? (
+          <GalleryBlock
+            photos={content.photos}
+            columns={tokens.galleryColumns}
+            variant={
+              section.variant === "masonry"
+                ? "masonry"
+                : section.variant === "grid"
+                  ? "grid"
+                  : tokens.gallery ?? "grid"
+            }
+          />
+        ) : null;
+      case "gift":
+        return canGift ? <GiftBlock content={content} /> : null;
+      case "rsvp":
+        return (
+          <RsvpBlock
+            invitationId={invitation.id}
+            guestId={guestId}
+            onDone={onRsvpDone}
+            buttonClass={tokens.cta}
+            demo={demo}
+          />
+        );
+      case "wishes":
+        return (
+          <WishesBlock
+            invitationId={invitation.id}
+            guestName={guestName}
+            wishes={wishes}
+            onNewWish={onNewWish}
+            buttonClass={tokens.cta}
+            demo={demo}
+          />
+        );
+      case "closing":
+        return <ClosingBlock content={content} />;
+      default:
+        return null;
+    }
+  };
+
+  const sectionBackground = (section: SectionConfig) => {
+    const value =
+      section.background && section.background !== "auto"
+        ? section.background
+        : defaultBackground(section.id);
+    if (value === "dark") return tokens.darkSection;
+    if (value === "soft") return tokens.softSection;
+    return "";
+  };
 
   return (
     <div
@@ -54,68 +150,53 @@ export default function ThemeRenderer({
     >
       <Ornament kind={tokens.ornament} />
 
-      {canMusic ? <MusicPlayer url={content.music_url} className="text-current" /> : null}
+      {layout === "framed" ? (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-2 z-20 border border-current/25 sm:inset-4"
+        />
+      ) : null}
+
+      {content.music_enabled ? (
+        <MusicPlayer
+          url={canMusic ? content.music_url : DEFAULT_MUSIC.url}
+          autoPlay={opened}
+          className="text-current"
+        />
+      ) : null}
 
       {!opened ? (
         <CoverGate
           invitation={invitation}
           guestName={guestName}
           onOpen={() => setOpened(true)}
-          bgClass={cn(tokens.cover, "relative")}
+          bgClass={tokens.cover}
           accentClass={tokens.coverButton}
           ornamentKind={tokens.ornament}
+          coverStyle={cover}
         />
       ) : null}
 
       {demo && !opened ? <DemoBar themeName={tokens.name} category={tokens.category} /> : null}
       {demo && opened ? <DemoBar themeName={tokens.name} category={tokens.category} compact /> : null}
 
-      <main className={cn("relative", opened ? "animate-fade-in" : "invisible")}>
-        <OpeningBlock content={content} />
-        <CoupleBlock
-          invitation={invitation}
-          initial={tokens.uppercaseHeading ? "Putra & Putri" : "Putra & Putri"}
-        />
-
-        <div className={tokens.darkSection}>
-          <EventsBlock content={content} eventDate={invitation.event_date} />
-        </div>
-
-        <StoryBlock content={content} />
-
-        {canGallery ? (
-          <GalleryBlock photos={content.photos} columns={tokens.galleryColumns} />
-        ) : null}
-
-        {canGift ? (
-          <div className={tokens.softSection}>
-            <GiftBlock content={content} />
-          </div>
-        ) : null}
-
-        <div className={tokens.softSection}>
-          <RsvpBlock
-            invitationId={invitation.id}
-            guestId={guestId}
-            onDone={onRsvpDone}
-            buttonClass={tokens.cta}
-            demo={demo}
-          />
-        </div>
-
-        <div className={tokens.darkSection}>
-          <WishesBlock
-            invitationId={invitation.id}
-            guestName={guestName}
-            wishes={wishes}
-            onNewWish={onNewWish}
-            buttonClass={tokens.cta}
-            demo={demo}
-          />
-        </div>
-
-        <ClosingBlock content={content} />
-        <Footer names={names} />
+      <main className={cn("relative", demo && "pt-14", opened ? "animate-fade-in" : "hidden")}>
+        <ThemeProvider value={tokens}>
+          {content.layout.sections
+            .filter((section) => section.enabled)
+            .map((section) => {
+              const node = renderSection(section);
+              const bg = sectionBackground(section);
+              return bg ? (
+                <div key={section.id} className={bg}>
+                  {node}
+                </div>
+              ) : (
+                <Fragment key={section.id}>{node}</Fragment>
+              );
+            })}
+          <Footer names={names} />
+        </ThemeProvider>
       </main>
     </div>
   );

@@ -1,32 +1,30 @@
+import { THEMES, type ThemeTokens } from "./theme-tokens";
 import type { InvitationContent, InvitationFull, WishRow } from "./types";
-import type { ThemeTokens } from "./theme-tokens";
+import { DEFAULT_SECTIONS } from "./types";
+import { WEDDING_PHOTOS } from "./stock-photos";
+import { DEFAULT_MUSIC, OPENING_PRESETS } from "./constants";
 
 /**
- * Data contoh untuk halaman demo tema. Foto dibuat sebagai SVG data-URI supaya
- * pratinjau tetap jalan tanpa koneksi ke layanan gambar eksternal.
+ * Data contoh untuk halaman demo tema. Foto diambil dari WEDDING_PHOTOS
+ * (Pexels), urutannya digeser per tema agar tiap demo tidak identik.
  */
-function demoPhoto(from: string, to: string, accent: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-<stop offset="0%" stop-color="${from}"/><stop offset="100%" stop-color="${to}"/>
-</linearGradient></defs>
-<rect width="800" height="1000" fill="url(#g)"/>
-<circle cx="400" cy="380" r="130" fill="${accent}" opacity="0.16"/>
-<circle cx="400" cy="380" r="180" fill="none" stroke="${accent}" stroke-opacity="0.18" stroke-width="3"/>
-<path d="M240 730l110-130 80 90 70-60 120 150z" fill="${accent}" opacity="0.22"/>
-<path d="M250 800h300" stroke="${accent}" stroke-opacity="0.3" stroke-width="8" stroke-linecap="round"/>
-</svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+const DEMO_PHOTOS = WEDDING_PHOTOS;
+
+function themePhotoOffset(tokens: ThemeTokens): number {
+  const index = THEMES.findIndex((theme) => theme.key === tokens.key);
+  return index < 0 ? 0 : index;
 }
 
 export function buildDemoContent(tokens: ThemeTokens): InvitationContent {
-  const { accent, text } = tokens.preview;
+  const offset = themePhotoOffset(tokens);
+  const photos = DEMO_PHOTOS.map(
+    (_, index) => DEMO_PHOTOS[(offset + index) % DEMO_PHOTOS.length],
+  );
   return {
     opening: {
-      greeting: "Assalamualaikum Warahmatullahi Wabarakatuh",
-      quote:
-        "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan hidup dari jenismu sendiri supaya kamu dapat ketenangan hati.",
-      quote_source: "QS. Ar-Rum: 21",
+      greeting: OPENING_PRESETS[0].greeting,
+      quote: OPENING_PRESETS[0].quote,
+      quote_source: OPENING_PRESETS[0].quote_source,
     },
     story: [
       {
@@ -58,6 +56,7 @@ export function buildDemoContent(tokens: ThemeTokens): InvitationContent {
         location: "Masjid Al-Falah",
         address: "Jl. Melati No. 12, Bandung, Jawa Barat",
         maps_url: "https://maps.google.com/?q=Masjid+Al-Falah+Bandung",
+        entertainment: "",
       },
       {
         id: "e2",
@@ -67,23 +66,26 @@ export function buildDemoContent(tokens: ThemeTokens): InvitationContent {
         location: "Gedung Graha Asri",
         address: "Jl. Anggrek No. 5, Bandung, Jawa Barat",
         maps_url: "https://maps.google.com/?q=Gedung+Graha+Asri+Bandung",
+        entertainment: "Dangdut (Romansa)",
       },
     ],
-    photos: [
-      demoPhoto(tokens.preview.bg, accent, accent),
-      demoPhoto(accent, tokens.preview.bg, text),
-      demoPhoto(tokens.preview.muted, accent, text),
-      demoPhoto(tokens.preview.bg, tokens.preview.muted, accent),
-      demoPhoto(accent, tokens.preview.muted, text),
-      demoPhoto(tokens.preview.muted, tokens.preview.bg, accent),
+    photos,
+    groom_photo: DEMO_PHOTOS[offset % DEMO_PHOTOS.length],
+    bride_photo: DEMO_PHOTOS[(offset + 2) % DEMO_PHOTOS.length],
+    socials: [
+      { id: "so1", platform: "Instagram", owner: "pria", url: "https://instagram.com/" },
+      { id: "so2", platform: "TikTok", owner: "wanita", url: "https://tiktok.com/" },
+      { id: "so3", platform: "YouTube", owner: "wanita", url: "https://youtube.com/" },
     ],
     gift: [
       { id: "g1", bank: "BCA", account_number: "1234567890", account_name: "Ahmad Fauzi" },
       { id: "g2", bank: "Mandiri", account_number: "0987654321", account_name: "Siti Nurhaliza" },
     ],
-    music_url: "",
+    music_url: DEFAULT_MUSIC.url,
+    music_enabled: true,
     closing:
       "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara berkenan hadir untuk memberikan doa restu.",
+    layout: { sections: DEFAULT_SECTIONS.map((section) => ({ ...section })) },
   };
 }
 
@@ -99,7 +101,7 @@ export function buildDemoInvitation(tokens: ThemeTokens): InvitationFull {
     groom_name: "Ahmad Fauzi",
     bride_name: "Siti Nurhaliza",
     event_date: "2026-12-12",
-    cover_image: null,
+    cover_image: DEMO_PHOTOS[themePhotoOffset(tokens) % DEMO_PHOTOS.length],
     content: {},
     storage_used_bytes: 0,
     published_at: now.toISOString(),
@@ -123,6 +125,8 @@ export function buildDemoInvitation(tokens: ThemeTokens): InvitationFull {
         rsvp: true,
         tanpa_watermark: true,
         domain_custom: true,
+        foto_mempelai: true,
+        sosial_media: true,
       },
     },
   };

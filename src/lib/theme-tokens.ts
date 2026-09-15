@@ -6,6 +6,9 @@
  * satu entri di sini + baris di tabel `themes` (key-nya harus sama).
  */
 
+import { WEDDING_PHOTOS } from "./stock-photos";
+import type { CoverStyle } from "./types";
+
 export type OrnamentKind =
   | "none"
   | "minimal"
@@ -21,6 +24,26 @@ export type OrnamentKind =
   | "cinematic";
 
 export type ThemeCategory = "basic" | "eksklusif";
+
+/**
+ * Arketipe layout. Menentukan susunan/gaya section, bukan sekadar palet warna.
+ * - minimal   : bersih, heading kiri, tanpa ornamen, banyak ruang kosong.
+ * - floral    : heading tengah, aksen bunga/daun, section lembut.
+ * - editorial : cover full-bleed, kutipan berbingkai, foto arch, acara timeline.
+ * - framed    : bingkai dekoratif halaman, divider motif, kartu berbingkai.
+ */
+export type ThemeLayout = "minimal" | "floral" | "editorial" | "framed";
+
+/** Gaya judul section per tema. */
+export type SectionHeaderStyle = "left" | "center" | "eyebrow" | "rule";
+/** Gaya blok mempelai per tema. */
+export type CoupleStyle = "circles" | "arch" | "portrait" | "monogram";
+/** Gaya daftar acara per tema. */
+export type EventsStyle = "cards" | "timeline" | "list";
+/** Gaya galeri per tema. */
+export type GalleryStyle = "grid" | "masonry";
+/** Gaya pembatas antar section per tema. */
+export type DividerStyle = "none" | "line" | "diamond";
 
 export interface ThemeTokens {
   key: string;
@@ -38,6 +61,18 @@ export interface ThemeTokens {
   cta: string;
   ornament: OrnamentKind;
   galleryColumns: 2 | 3 | 4;
+  /** Arketipe layout; diisi otomatis lewat pemetaan setelah katalog dibuat. */
+  layout?: ThemeLayout;
+  /** Gaya cover khas tema; diisi otomatis lewat pemetaan. */
+  coverStyle?: CoverStyle;
+  /** Gaya desain section khas tema; diisi otomatis lewat pemetaan. */
+  header?: SectionHeaderStyle;
+  couple?: CoupleStyle;
+  events?: EventsStyle;
+  gallery?: GalleryStyle;
+  divider?: DividerStyle;
+  /** Foto contoh untuk kartu galeri tema (bukan screenshot tema). */
+  preview_image?: string;
   /** Dipakai galeri tema untuk menggambar thumbnail (tanpa file gambar). */
   preview: { bg: string; accent: string; text: string; muted: string };
 }
@@ -250,10 +285,155 @@ export const THEMES: ThemeTokens[] = [
   },
 ];
 
+const LAYOUT_BY_THEME: Record<string, ThemeLayout> = {
+  "modern-minimalist": "minimal",
+  "aesthetic-putih": "minimal",
+  "marble-elegan": "minimal",
+  "elegan-floral": "floral",
+  "rustic-boho": "floral",
+  "tropical-bali": "floral",
+  "sakura-zen": "floral",
+  "adat-tradisional": "framed",
+  "islamic-arabesque": "framed",
+  "vintage-retro": "framed",
+  "luxury-gold": "editorial",
+  "cinematic-dark": "editorial",
+};
+
+const COVER_BY_THEME: Record<string, CoverStyle> = {
+  "modern-minimalist": "minimal",
+  "aesthetic-putih": "panel",
+  "elegan-floral": "framed",
+  "rustic-boho": "split",
+  "adat-tradisional": "arch",
+  "luxury-gold": "full",
+  "marble-elegan": "panel",
+  "islamic-arabesque": "arch",
+  "tropical-bali": "full",
+  "vintage-retro": "framed",
+  "sakura-zen": "centered",
+  "cinematic-dark": "full",
+};
+
+interface ThemeDesign {
+  header: SectionHeaderStyle;
+  couple: CoupleStyle;
+  events: EventsStyle;
+  gallery: GalleryStyle;
+  divider: DividerStyle;
+}
+
+/** Kombinasi desain section per tema supaya tiap template punya UI sendiri. */
+const DESIGN_BY_THEME: Record<string, ThemeDesign> = {
+  "modern-minimalist": {
+    header: "left",
+    couple: "monogram",
+    events: "list",
+    gallery: "grid",
+    divider: "line",
+  },
+  "aesthetic-putih": {
+    header: "eyebrow",
+    couple: "circles",
+    events: "cards",
+    gallery: "grid",
+    divider: "line",
+  },
+  "elegan-floral": {
+    header: "center",
+    couple: "portrait",
+    events: "cards",
+    gallery: "masonry",
+    divider: "diamond",
+  },
+  "rustic-boho": {
+    header: "left",
+    couple: "circles",
+    events: "list",
+    gallery: "masonry",
+    divider: "line",
+  },
+  "adat-tradisional": {
+    header: "rule",
+    couple: "portrait",
+    events: "cards",
+    gallery: "grid",
+    divider: "diamond",
+  },
+  "luxury-gold": {
+    header: "eyebrow",
+    couple: "arch",
+    events: "timeline",
+    gallery: "masonry",
+    divider: "diamond",
+  },
+  "marble-elegan": {
+    header: "left",
+    couple: "circles",
+    events: "cards",
+    gallery: "grid",
+    divider: "line",
+  },
+  "islamic-arabesque": {
+    header: "rule",
+    couple: "arch",
+    events: "cards",
+    gallery: "masonry",
+    divider: "diamond",
+  },
+  "tropical-bali": {
+    header: "center",
+    couple: "portrait",
+    events: "cards",
+    gallery: "masonry",
+    divider: "line",
+  },
+  "vintage-retro": {
+    header: "rule",
+    couple: "monogram",
+    events: "list",
+    gallery: "grid",
+    divider: "diamond",
+  },
+  "sakura-zen": {
+    header: "eyebrow",
+    couple: "circles",
+    events: "timeline",
+    gallery: "masonry",
+    divider: "line",
+  },
+  "cinematic-dark": {
+    header: "left",
+    couple: "arch",
+    events: "list",
+    gallery: "masonry",
+    divider: "none",
+  },
+};
+
+for (const [index, theme] of THEMES.entries()) {
+  theme.preview_image = WEDDING_PHOTOS[index % WEDDING_PHOTOS.length];
+  theme.layout = LAYOUT_BY_THEME[theme.key] ?? "floral";
+  theme.coverStyle = COVER_BY_THEME[theme.key] ?? "centered";
+  const design = DESIGN_BY_THEME[theme.key];
+  if (design) {
+    theme.header = design.header;
+    theme.couple = design.couple;
+    theme.events = design.events;
+    theme.gallery = design.gallery;
+    theme.divider = design.divider;
+  }
+}
+
 export const THEME_MAP = new Map(THEMES.map((theme) => [theme.key, theme]));
 
 export function getThemeTokens(key: string | null | undefined): ThemeTokens {
   return (key && THEME_MAP.get(key)) || THEMES[0];
+}
+
+/** Layout untuk sebuah tema; fallback ke "floral". */
+export function themeLayout(key: string | null | undefined): ThemeLayout {
+  return getThemeTokens(key).layout ?? "floral";
 }
 
 export const FREE_THEME_KEYS = THEMES.filter((t) => t.category === "basic").map((t) => t.key);

@@ -15,7 +15,7 @@ export interface AuthContextValue {
     fullName: string;
     phone: string;
   }) => Promise<{ needsEmailConfirm: boolean }>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogleIdToken: (token: string, nonce?: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (patch: Partial<Pick<ProfileRow, "full_name" | "phone">>) => Promise<void>;
   refreshProfile: () => Promise<void>;

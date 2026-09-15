@@ -414,11 +414,19 @@ export default function LandingPage() {
         </div>
 
         <div className="border-t border-slate-100">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-slate-500 sm:flex-row">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-slate-500 sm:flex-row">
             <p>© {new Date().getFullYear()} Invite. Dibuat untuk memudahkan.</p>
-            <p className="inline-flex items-center gap-1.5">
-              <MessageSquareHeart className="h-3.5 w-3.5" /> invite.irkop.eu.org
-            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+              <Link to="/privacy" className="hover:text-slate-900">
+                Kebijakan Privasi
+              </Link>
+              <Link to="/terms" className="hover:text-slate-900">
+                Syarat &amp; Ketentuan
+              </Link>
+              <span className="inline-flex items-center gap-1.5">
+                <MessageSquareHeart className="h-3.5 w-3.5" /> invite.irkop.eu.org
+              </span>
+            </div>
           </div>
         </div>
       </footer>

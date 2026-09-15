@@ -83,10 +83,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const signInWithGoogle = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+  const signInWithGoogleIdToken = useCallback(async (token: string, nonce?: string) => {
+    const { error } = await supabase.auth.signInWithIdToken({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/app` },
+      token,
+      ...(nonce ? { nonce } : {}),
     });
     if (error) throw new Error(error.message);
   }, []);
@@ -120,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       signIn,
       signUp,
-      signInWithGoogle,
+      signInWithGoogleIdToken,
       signOut,
       updateProfile,
       refreshProfile,
@@ -132,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       signIn,
       signUp,
-      signInWithGoogle,
+      signInWithGoogleIdToken,
       signOut,
       updateProfile,
       refreshProfile,

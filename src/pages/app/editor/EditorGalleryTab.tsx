@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { ImagePlus, Trash2, Upload } from "lucide-react";
 import { removeStorageObject, uploadInvitationImage } from "../../../lib/api";
-import { compressImage } from "../../../lib/image";
+import { MAX_IMAGE_BYTES, compressImage } from "../../../lib/image";
 import { parseContent, type InvitationContent } from "../../../lib/types";
 import { formatBytes } from "../../../lib/utils";
 import { useToast } from "../../../hooks/useToast";
@@ -37,11 +37,21 @@ export default function EditorGalleryTab({ invitation, update }: EditorTabProps)
       toast.info(`Hanya ${selected.length} foto diunggah karena batas kuota plan.`);
     }
 
+    const acceptable = selected.filter((file) => file.size <= MAX_IMAGE_BYTES);
+    if (acceptable.length < selected.length) {
+      toast.info(`${selected.length - acceptable.length} foto dilewati karena melebihi 2 MB.`);
+    }
+    if (acceptable.length === 0) {
+      toast.error("Semua foto melebihi 2 MB. Pilih file yang lebih kecil.");
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
     try {
       const uploaded: string[] = [];
       let addedBytes = 0;
-      for (const file of selected) {
+      for (const file of acceptable) {
         const compressed = await compressImage(file, { maxWidth: 1600, maxHeight: 1600 });
         const { url, size } = await uploadInvitationImage(
           "photos",

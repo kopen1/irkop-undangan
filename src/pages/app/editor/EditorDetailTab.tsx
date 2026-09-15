@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ImagePlus, Palette, Rocket, Undo2, Upload } from "lucide-react";
 import { listPlanThemes, listThemes, publishInvitation, slugAvailable, unpublishInvitation, uploadInvitationImage } from "../../../lib/api";
-import { compressImage } from "../../../lib/image";
+import { assertImageWithinLimit, compressImage } from "../../../lib/image";
 import type { ThemeRow } from "../../../lib/types";
 import { isReservedSlug, slugify, toDateInput } from "../../../lib/utils";
 import { useToast } from "../../../hooks/useToast";
@@ -97,6 +97,7 @@ export default function EditorDetailTab({ invitation, reload, update }: EditorTa
     if (!file) return;
     setUploadingCover(true);
     try {
+      assertImageWithinLimit(file);
       const compressed = await compressImage(file, { maxWidth: 1600, maxHeight: 1600 });
       const { url, size } = await uploadInvitationImage(
         "covers",

@@ -22,6 +22,8 @@ export interface EventItem {
   location: string;
   address: string;
   maps_url: string;
+  /** Hiburan/pengisi acara, mis. "Dangdut (Romansa)". Kosong = tidak tampil. */
+  entertainment: string;
 }
 
 export interface GiftAccount {
@@ -31,14 +33,132 @@ export interface GiftAccount {
   account_name: string;
 }
 
+export interface SocialLink {
+  id: string;
+  platform: string;
+  owner: "pria" | "wanita";
+  url: string;
+}
+
+/** Section undangan yang bisa diatur urutannya di tab Studio. */
+export type SectionKey =
+  | "opening"
+  | "couple"
+  | "social"
+  | "events"
+  | "story"
+  | "gallery"
+  | "gift"
+  | "rsvp"
+  | "wishes"
+  | "closing";
+
+export type CoverStyle =
+  | "centered"
+  | "minimal"
+  | "full"
+  | "framed"
+  | "split"
+  | "panel"
+  | "arch";
+
+export type SectionVariant = "cards" | "timeline" | "list" | "grid" | "masonry";
+
+/** Latar section. "auto" = ikut default section, "none" = latar halaman. */
+export type SectionBackground = "auto" | "none" | "soft" | "dark";
+
+export const SECTION_BACKGROUNDS: SectionBackground[] = ["auto", "none", "soft", "dark"];
+
+export interface SectionConfig {
+  id: SectionKey;
+  enabled: boolean;
+  variant?: SectionVariant;
+  background?: SectionBackground;
+}
+
+export interface LayoutConfig {
+  /** Kosong = ikut arketipe tema. */
+  cover?: CoverStyle;
+  sections: SectionConfig[];
+}
+
+export const SECTION_KEYS: SectionKey[] = [
+  "opening",
+  "couple",
+  "social",
+  "events",
+  "story",
+  "gallery",
+  "gift",
+  "rsvp",
+  "wishes",
+  "closing",
+];
+
+export const DEFAULT_SECTIONS: SectionConfig[] = [
+  { id: "opening", enabled: true },
+  { id: "couple", enabled: true },
+  { id: "social", enabled: true },
+  { id: "events", enabled: true },
+  { id: "story", enabled: true },
+  { id: "gallery", enabled: true },
+  { id: "gift", enabled: true },
+  { id: "rsvp", enabled: true },
+  { id: "wishes", enabled: true },
+  { id: "closing", enabled: true },
+];
+
+export const COVER_STYLES: CoverStyle[] = [
+  "centered",
+  "minimal",
+  "full",
+  "framed",
+  "split",
+  "panel",
+  "arch",
+];
+
+export function normalizeLayout(raw: unknown): LayoutConfig {
+  const value = (raw ?? {}) as Partial<LayoutConfig>;
+  const cover = COVER_STYLES.includes(value.cover as CoverStyle)
+    ? (value.cover as CoverStyle)
+    : undefined;
+
+  const saved = Array.isArray(value.sections) ? value.sections : [];
+  const sections: SectionConfig[] = [];
+  const seen = new Set<string>();
+  for (const item of saved) {
+    if (!item || typeof item.id !== "string") continue;
+    if (!SECTION_KEYS.includes(item.id as SectionKey) || seen.has(item.id)) continue;
+    seen.add(item.id);
+    sections.push({
+      id: item.id as SectionKey,
+      enabled: item.enabled !== false,
+      variant: item.variant,
+      background: SECTION_BACKGROUNDS.includes(item.background as SectionBackground)
+        ? (item.background as SectionBackground)
+        : undefined,
+    });
+  }
+  for (const def of DEFAULT_SECTIONS) {
+    if (!seen.has(def.id)) sections.push({ ...def });
+  }
+  return { cover, sections };
+}
+
 export interface InvitationContent {
   opening: Opening;
   story: StoryItem[];
   events: EventItem[];
   photos: string[];
+  groom_photo: string;
+  bride_photo: string;
+  socials: SocialLink[];
   gift: GiftAccount[];
   music_url: string;
+  music_enabled: boolean;
   closing: string;
+  layout: LayoutConfig;
 }
 
 export const EMPTY_CONTENT: InvitationContent = {
@@ -46,9 +166,14 @@ export const EMPTY_CONTENT: InvitationContent = {
   story: [],
   events: [],
   photos: [],
+  groom_photo: "",
+  bride_photo: "",
+  socials: [],
   gift: [],
   music_url: "",
+  music_enabled: true,
   closing: "",
+  layout: { sections: DEFAULT_SECTIONS.map((section) => ({ ...section })) },
 };
 
 export function parseContent(raw: Json | null | undefined): InvitationContent {
@@ -56,11 +181,28 @@ export function parseContent(raw: Json | null | undefined): InvitationContent {
   return {
     opening: { ...EMPTY_CONTENT.opening, ...(value.opening ?? {}) },
     story: Array.isArray(value.story) ? value.story : [],
-    events: Array.isArray(value.events) ? value.events : [],
+    events: Array.isArray(value.events)
+      ? value.events.map((item) => ({
+          ...item,
+          entertainment: typeof item?.entertainment === "string" ? item.entertainment : "",
+        }))
+      : [],
     photos: Array.isArray(value.photos) ? value.photos : [],
+    groom_photo: typeof value.groom_photo === "string" ? value.groom_photo : "",
+    bride_photo: typeof value.bride_photo === "string" ? value.bride_photo : "",
+    socials: Array.isArray(value.socials)
+      ? value.socials.map((item) => ({
+          id: String(item?.id ?? ""),
+          platform: String(item?.platform ?? ""),
+          owner: item?.owner === "wanita" ? "wanita" : "pria",
+          url: String(item?.url ?? ""),
+        }))
+      : [],
     gift: Array.isArray(value.gift) ? value.gift : [],
     music_url: typeof value.music_url === "string" ? value.music_url : "",
+    music_enabled: typeof value.music_enabled === "boolean" ? value.music_enabled : true,
     closing: typeof value.closing === "string" ? value.closing : "",
+    layout: normalizeLayout(value.layout),
   };
 }
 
@@ -107,7 +249,9 @@ export type PlanFeature =
   | "galeri"
   | "rsvp"
   | "tanpa_watermark"
-  | "domain_custom";
+  | "domain_custom"
+  | "foto_mempelai"
+  | "sosial_media";
 
 /** Baca kolom jsonb `plans.features`. Plan tanpa fitur = false. */
 export function planHasFeature(

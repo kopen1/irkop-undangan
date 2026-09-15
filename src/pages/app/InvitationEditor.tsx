@@ -8,6 +8,7 @@ import {
   Images,
   LayoutList,
   MessageSquareHeart,
+  Palette,
   Send,
   Settings2,
   Users,
@@ -22,6 +23,7 @@ import { Button } from "../../components/ui/Button";
 import { PageLoader } from "../../components/ui/Spinner";
 import type { EditorTabProps, InvitationPatch } from "./editor/types";
 import EditorDetailTab from "./editor/EditorDetailTab";
+import EditorStudioTab from "./editor/EditorStudioTab";
 import EditorContentTab from "./editor/EditorContentTab";
 import EditorGalleryTab from "./editor/EditorGalleryTab";
 import EditorGuestsTab from "./editor/EditorGuestsTab";
@@ -31,6 +33,7 @@ import EditorPlanTab from "./editor/EditorPlanTab";
 
 const TABS = [
   { key: "detail", label: "Detail & Tema", icon: Settings2 },
+  { key: "studio", label: "Studio", icon: Palette },
   { key: "konten", label: "Konten", icon: LayoutList },
   { key: "galeri", label: "Galeri", icon: Images },
   { key: "tamu", label: "Tamu", icon: Users },
@@ -177,6 +180,7 @@ export default function InvitationEditor() {
 
       <div className="mt-6">
         {tab === "detail" ? <EditorDetailTab {...tabProps} /> : null}
+        {tab === "studio" ? <EditorStudioTab {...tabProps} /> : null}
         {tab === "konten" ? <EditorContentTab {...tabProps} /> : null}
         {tab === "galeri" ? <EditorGalleryTab {...tabProps} /> : null}
         {tab === "tamu" ? <EditorGuestsTab {...tabProps} /> : null}

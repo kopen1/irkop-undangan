@@ -69,6 +69,18 @@ function ThemeCard({ theme }: { theme: ThemeTokens }) {
         className="relative aspect-[4/5] overflow-hidden rounded-xl"
         style={{ background: preview.bg }}
       >
+        {theme.preview_image ? (
+          <img
+            src={theme.preview_image}
+            alt=""
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : null}
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: preview.bg, opacity: 0.82 }}
+        />
         <div
           className="absolute inset-3 rounded-lg border"
           style={{ borderColor: preview.accent, opacity: 0.35 }}

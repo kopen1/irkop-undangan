@@ -18,6 +18,8 @@ const FEATURE_KEYS = [
   "rsvp",
   "tanpa_watermark",
   "domain_custom",
+  "foto_mempelai",
+  "sosial_media",
 ];
 
 interface FormState {

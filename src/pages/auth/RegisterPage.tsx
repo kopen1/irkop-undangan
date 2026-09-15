@@ -4,10 +4,11 @@ import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import { Button } from "../../components/ui/Button";
 import { FieldWrapper, Input } from "../../components/ui/Field";
-import { AuthShell, GoogleIcon } from "./AuthShell";
+import { GoogleSignInButton } from "../../components/auth/GoogleSignInButton";
+import { AuthShell } from "./AuthShell";
 
 export default function RegisterPage() {
-  const { signUp, signInWithGoogle, user } = useAuth();
+  const { signUp, user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -16,7 +17,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   if (user) return <Navigate to="/app" replace />;
 
@@ -45,16 +45,6 @@ export default function RegisterPage() {
       toast.error((error as Error).message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGoogle = async () => {
-    setGoogleLoading(true);
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      toast.error((error as Error).message);
-      setGoogleLoading(false);
     }
   };
 
@@ -118,15 +108,7 @@ export default function RegisterPage() {
         <span className="h-px flex-1 bg-slate-200" />
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        loading={googleLoading}
-        onClick={handleGoogle}
-      >
-        <GoogleIcon className="h-4 w-4" /> Daftar dengan Google
-      </Button>
+      <GoogleSignInButton text="signup_with" />
     </AuthShell>
   );
 }
