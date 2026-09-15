@@ -62,6 +62,9 @@ export function ThemeGallery({
 function ThemeCard({ theme }: { theme: ThemeTokens }) {
   const { preview } = theme;
   const locked = theme.category === "eksklusif";
+  const cover = theme.coverStyle ?? "centered";
+  const left = theme.header === "left";
+  const photo = theme.preview_image;
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60">
@@ -69,45 +72,97 @@ function ThemeCard({ theme }: { theme: ThemeTokens }) {
         className="relative aspect-[4/5] overflow-hidden rounded-xl"
         style={{ background: preview.bg }}
       >
-        {theme.preview_image ? (
+        {cover === "full" && photo ? (
+          <>
+            <img
+              src={photo}
+              alt=""
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: `linear-gradient(to top, ${preview.bg}F2, ${preview.bg}26)` }}
+            />
+          </>
+        ) : null}
+
+        {(cover === "split" || cover === "panel") && photo ? (
           <img
-            src={theme.preview_image}
+            src={photo}
+            alt=""
+            loading="lazy"
+            className={cn(
+              "absolute inset-x-4 top-4 h-1/2 object-cover",
+              cover === "panel" ? "rounded-md border" : "rounded-lg",
+            )}
+            style={cover === "panel" ? { borderColor: preview.accent } : undefined}
+          />
+        ) : null}
+
+        {cover === "arch" ? (
+          <div
+            className="absolute inset-x-0 top-5 mx-auto h-[38%] w-1/3 overflow-hidden rounded-t-full"
+            style={{ background: preview.accent }}
+          >
+            {photo ? (
+              <img src={photo} alt="" loading="lazy" className="h-full w-full object-cover" />
+            ) : null}
+          </div>
+        ) : null}
+
+        {cover !== "full" && cover !== "split" && cover !== "panel" && cover !== "arch" ? (
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: preview.bg, opacity: cover === "minimal" ? 0.94 : 0.8 }}
+          />
+        ) : null}
+
+        {photo && cover !== "full" && cover !== "split" && cover !== "panel" && cover !== "arch" ? (
+          <img
+            src={photo}
             alt=""
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
+            style={{ opacity: 0.18 }}
           />
         ) : null}
+
+        {cover === "framed" ? (
+          <div
+            className="absolute inset-3 rounded-lg border"
+            style={{ borderColor: preview.accent, opacity: 0.6 }}
+          />
+        ) : null}
+
         <div
-          className="absolute inset-0"
-          style={{ backgroundColor: preview.bg, opacity: 0.82 }}
-        />
-        <div
-          className="absolute inset-3 rounded-lg border"
-          style={{ borderColor: preview.accent, opacity: 0.35 }}
-        />
-        <div className="relative flex h-full flex-col items-center justify-center px-4 text-center">
-          <p
-            className="text-[9px] uppercase tracking-[0.35em]"
-            style={{ color: preview.muted }}
-          >
+          className={cn(
+            "absolute inset-0 flex flex-col px-4",
+            left ? "items-start text-left" : "items-center text-center",
+            cover === "full" || cover === "split" || cover === "panel" || cover === "arch"
+              ? "justify-end pb-5"
+              : "justify-center",
+          )}
+        >
+          <p className="text-[9px] uppercase tracking-[0.35em]" style={{ color: preview.muted }}>
             Undangan
           </p>
           <p
-            className="mt-3 text-lg font-semibold leading-tight"
+            className="mt-2 text-lg font-semibold leading-tight"
             style={{ color: preview.text, fontFamily: theme.heading }}
           >
             Ahmad
             <span className="mx-1.5 opacity-60">&amp;</span>
             Siti
           </p>
-          <span
-            className="my-3 block h-px w-12"
-            style={{ background: preview.accent }}
-          />
+          {theme.divider !== "none" ? (
+            <span className="my-3 block h-px w-12" style={{ background: preview.accent }} />
+          ) : null}
           <p className="text-[10px]" style={{ color: preview.muted }}>
             12 Desember 2026
           </p>
         </div>
+
         <span
           className={cn(
             "absolute left-3 top-3 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
