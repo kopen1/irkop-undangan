@@ -44,6 +44,8 @@ export type EventsStyle = "cards" | "timeline" | "list";
 export type GalleryStyle = "grid" | "masonry";
 /** Gaya pembatas antar section per tema. */
 export type DividerStyle = "none" | "line" | "diamond";
+/** Gaya blok cerita cinta per tema. */
+export type StoryStyle = "timeline" | "list" | "cards";
 
 export interface ThemeTokens {
   key: string;
@@ -71,6 +73,7 @@ export interface ThemeTokens {
   events?: EventsStyle;
   gallery?: GalleryStyle;
   divider?: DividerStyle;
+  story?: StoryStyle;
   /** Foto contoh untuk kartu galeri tema (bukan screenshot tema). */
   preview_image?: string;
   /** Dipakai galeri tema untuk menggambar thumbnail (tanpa file gambar). */
@@ -411,10 +414,26 @@ const DESIGN_BY_THEME: Record<string, ThemeDesign> = {
   },
 };
 
+const STORY_BY_THEME: Record<string, StoryStyle> = {
+  "modern-minimalist": "list",
+  "aesthetic-putih": "cards",
+  "elegan-floral": "timeline",
+  "rustic-boho": "list",
+  "adat-tradisional": "timeline",
+  "luxury-gold": "timeline",
+  "marble-elegan": "cards",
+  "islamic-arabesque": "timeline",
+  "tropical-bali": "cards",
+  "vintage-retro": "list",
+  "sakura-zen": "timeline",
+  "cinematic-dark": "list",
+};
+
 for (const [index, theme] of THEMES.entries()) {
   theme.preview_image = WEDDING_PHOTOS[index % WEDDING_PHOTOS.length];
   theme.layout = LAYOUT_BY_THEME[theme.key] ?? "floral";
   theme.coverStyle = COVER_BY_THEME[theme.key] ?? "centered";
+  theme.story = STORY_BY_THEME[theme.key] ?? "timeline";
   const design = DESIGN_BY_THEME[theme.key];
   if (design) {
     theme.header = design.header;

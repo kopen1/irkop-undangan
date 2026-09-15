@@ -502,7 +502,46 @@ export function SocialBlock({ socials }: { socials: SocialLink[] }) {
 }
 
 export function StoryBlock({ content }: { content: InvitationContent }) {
+  const theme = useContext(ThemeContext);
+  const style = theme.story ?? "timeline";
   if (content.story.length === 0) return null;
+
+  if (style === "list") {
+    return (
+      <Section title="Cerita Kami">
+        <div className="space-y-5">
+          {content.story.map((item) => (
+            <div key={item.id} className="border-t border-current/15 pt-5 first:border-t-0 first:pt-0">
+              <p className="text-xs uppercase tracking-widest opacity-60">{item.time}</p>
+              <p className="mt-1 [font-family:var(--font-heading)] text-lg font-semibold">{item.title}</p>
+              {item.description ? (
+                <p className="mt-1 text-sm leading-relaxed opacity-80">{item.description}</p>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </Section>
+    );
+  }
+
+  if (style === "cards") {
+    return (
+      <Section title="Cerita Kami">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {content.story.map((item) => (
+            <div key={item.id} className="rounded-2xl border border-current/15 bg-white/10 p-5 backdrop-blur">
+              <p className="text-xs uppercase tracking-widest opacity-60">{item.time}</p>
+              <p className="mt-1 [font-family:var(--font-heading)] text-lg font-semibold">{item.title}</p>
+              {item.description ? (
+                <p className="mt-1.5 text-sm leading-relaxed opacity-80">{item.description}</p>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </Section>
+    );
+  }
+
   return (
     <Section title="Cerita Kami">
       <ol className="relative space-y-6 border-l border-current/20 pl-6">
