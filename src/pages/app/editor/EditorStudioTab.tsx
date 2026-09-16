@@ -16,6 +16,7 @@ import { useToast } from "../../../hooks/useToast";
 import { Button } from "../../../components/ui/Button";
 import { Card, CardBody, CardHeader } from "../../../components/ui/Card";
 import { FieldWrapper, Select } from "../../../components/ui/Field";
+import ThemeRenderer from "../../public/invitation/ThemeRenderer";
 import type { EditorTabProps } from "./types";
 
 const SECTION_LABELS: Record<SectionKey, string> = {
@@ -69,6 +70,7 @@ export default function EditorStudioTab({ invitation, update }: EditorTabProps) 
   const [saving, setSaving] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [preview, setPreview] = useState(false);
 
   const sections = content.layout.sections;
   const themeCover = getThemeTokens(invitation.theme?.key).coverStyle ?? "centered";
@@ -289,11 +291,38 @@ export default function EditorStudioTab({ invitation, update }: EditorTabProps) 
         </CardBody>
       </Card>
 
-      <div className="sticky bottom-4 flex justify-end">
+      <div className="sticky bottom-4 flex justify-end gap-2">
+        <Button variant="outline" size="lg" onClick={() => setPreview(true)}>
+          <Eye className="h-4 w-4" /> Pratinjau
+        </Button>
         <Button onClick={handleSave} loading={saving} size="lg" className="shadow-lg">
           <Save className="h-4 w-4" /> Simpan studio
         </Button>
       </div>
+
+      {preview ? (
+        <div className="fixed inset-0 z-[100] bg-black/70">
+          <div className="absolute inset-0 overflow-y-auto">
+            <ThemeRenderer
+              demo
+              invitation={invitation}
+              content={content}
+              guestName="Bapak/Ibu Tamu Undangan"
+              guestId={null}
+              wishes={[]}
+              onNewWish={() => undefined}
+              onRsvpDone={() => undefined}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setPreview(false)}
+            className="fixed right-4 top-4 z-[110] rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-lg transition hover:bg-slate-100"
+          >
+            Tutup pratinjau
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

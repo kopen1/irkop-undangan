@@ -46,6 +46,18 @@ export type GalleryStyle = "grid" | "masonry";
 export type DividerStyle = "none" | "line" | "diamond";
 /** Gaya blok cerita cinta per tema. */
 export type StoryStyle = "timeline" | "list" | "cards";
+/** Gaya blok pembuka per tema. */
+export type OpeningStyle = "plain" | "boxed" | "framed" | "quote";
+/** Gaya blok penutup per tema. */
+export type ClosingStyle = "plain" | "big" | "framed";
+/** Dekor halaman per tema. */
+export type DecorStyle = "none" | "frame" | "vignette";
+/** Gaya blok amplop digital per tema. */
+export type GiftStyle = "cards" | "list";
+/** Gaya daftar ucapan per tema. */
+export type WishesStyle = "cards" | "plain";
+/** Gaya blok RSVP per tema. */
+export type RsvpStyle = "card" | "plain";
 
 export interface ThemeTokens {
   key: string;
@@ -74,6 +86,13 @@ export interface ThemeTokens {
   gallery?: GalleryStyle;
   divider?: DividerStyle;
   story?: StoryStyle;
+  opening?: OpeningStyle;
+  closing?: ClosingStyle;
+  decor?: DecorStyle;
+  pattern?: string;
+  gift?: GiftStyle;
+  wishes?: WishesStyle;
+  rsvp?: RsvpStyle;
   /** Foto contoh untuk kartu galeri tema (bukan screenshot tema). */
   preview_image?: string;
   /** Dipakai galeri tema untuk menggambar thumbnail (tanpa file gambar). */
@@ -429,11 +448,71 @@ const STORY_BY_THEME: Record<string, StoryStyle> = {
   "cinematic-dark": "list",
 };
 
+const OPENING_BY_THEME: Record<string, OpeningStyle> = {
+  "modern-minimalist": "plain",
+  "aesthetic-putih": "boxed",
+  "elegan-floral": "framed",
+  "rustic-boho": "plain",
+  "adat-tradisional": "framed",
+  "luxury-gold": "quote",
+  "marble-elegan": "boxed",
+  "islamic-arabesque": "framed",
+  "tropical-bali": "quote",
+  "vintage-retro": "boxed",
+  "sakura-zen": "plain",
+  "cinematic-dark": "quote",
+};
+
+const CLOSING_BY_THEME: Record<string, ClosingStyle> = {
+  "modern-minimalist": "plain",
+  "aesthetic-putih": "framed",
+  "elegan-floral": "big",
+  "rustic-boho": "plain",
+  "adat-tradisional": "framed",
+  "luxury-gold": "big",
+  "marble-elegan": "plain",
+  "islamic-arabesque": "framed",
+  "tropical-bali": "big",
+  "vintage-retro": "framed",
+  "sakura-zen": "big",
+  "cinematic-dark": "big",
+};
+
+const DECOR_BY_THEME: Record<string, DecorStyle> = {
+  "luxury-gold": "frame",
+  "cinematic-dark": "vignette",
+};
+
+const GIFT_BY_THEME: Record<string, GiftStyle> = {
+  "modern-minimalist": "list",
+  "rustic-boho": "list",
+  "vintage-retro": "list",
+  "cinematic-dark": "list",
+};
+
+const WISHES_BY_THEME: Record<string, WishesStyle> = {
+  "modern-minimalist": "plain",
+  "rustic-boho": "plain",
+  "vintage-retro": "plain",
+  "cinematic-dark": "plain",
+};
+
+const RSVP_BY_THEME: Record<string, RsvpStyle> = {
+  "modern-minimalist": "plain",
+  "cinematic-dark": "plain",
+};
+
 for (const [index, theme] of THEMES.entries()) {
   theme.preview_image = WEDDING_PHOTOS[index % WEDDING_PHOTOS.length];
   theme.layout = LAYOUT_BY_THEME[theme.key] ?? "floral";
   theme.coverStyle = COVER_BY_THEME[theme.key] ?? "centered";
   theme.story = STORY_BY_THEME[theme.key] ?? "timeline";
+  theme.opening = OPENING_BY_THEME[theme.key] ?? "plain";
+  theme.closing = CLOSING_BY_THEME[theme.key] ?? "plain";
+  theme.decor = DECOR_BY_THEME[theme.key] ?? "none";
+  theme.gift = GIFT_BY_THEME[theme.key] ?? "cards";
+  theme.wishes = WISHES_BY_THEME[theme.key] ?? "cards";
+  theme.rsvp = RSVP_BY_THEME[theme.key] ?? "card";
   const design = DESIGN_BY_THEME[theme.key];
   if (design) {
     theme.header = design.header;

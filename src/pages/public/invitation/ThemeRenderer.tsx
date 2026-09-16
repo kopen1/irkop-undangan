@@ -156,6 +156,24 @@ export default function ThemeRenderer({
           className="pointer-events-none fixed inset-2 z-20 border border-current/25 sm:inset-4"
         />
       ) : null}
+      {tokens.decor === "frame" ? (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-2 z-20 border border-current/30 sm:inset-4"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-3 z-20 border border-current/15 sm:inset-6"
+          />
+        </>
+      ) : null}
+      {tokens.decor === "vignette" ? (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(0,0,0,0.55)_100%)]"
+        />
+      ) : null}
 
       {content.music_enabled ? (
         <MusicPlayer

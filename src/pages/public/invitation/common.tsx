@@ -278,32 +278,59 @@ export function Section({
 
 export function OpeningBlock({ content }: { content: InvitationContent }) {
   const theme = useContext(ThemeContext);
-  const boxed = theme.layout === "editorial" || theme.layout === "framed";
+  const style = theme.opening ?? "plain";
   const { opening } = content;
   if (!opening.greeting && !opening.quote) return null;
-  return (
-    <Section divider={false}>
-      <div
-        className={cn(
-          boxed && "rounded-3xl border border-current/20 bg-white/5 px-6 py-9 backdrop-blur-sm",
-        )}
-      >
-        {opening.greeting ? (
-          <p className="text-center text-sm font-medium opacity-90">{opening.greeting}</p>
-        ) : null}
-        {opening.quote ? (
-          <blockquote className="mt-6 text-center [font-family:var(--font-heading)] text-lg italic leading-relaxed">
-            “{opening.quote}”
-            {opening.quote_source ? (
-              <footer className="mt-2 text-xs not-italic uppercase tracking-widest opacity-60">
-                {opening.quote_source}
-              </footer>
-            ) : null}
-          </blockquote>
-        ) : null}
-      </div>
-    </Section>
+
+  const body = (
+    <>
+      {opening.greeting ? (
+        <p className="text-center text-sm font-medium opacity-90">{opening.greeting}</p>
+      ) : null}
+      {opening.quote ? (
+        <blockquote className="mt-6 text-center [font-family:var(--font-heading)] text-lg italic leading-relaxed">
+          “{opening.quote}”
+          {opening.quote_source ? (
+            <footer className="mt-2 text-xs not-italic uppercase tracking-widest opacity-60">
+              {opening.quote_source}
+            </footer>
+          ) : null}
+        </blockquote>
+      ) : null}
+    </>
   );
+
+  if (style === "quote") {
+    return (
+      <Section divider={false}>
+        <div className="relative text-center">
+          <span className="[font-family:var(--font-heading)] text-6xl leading-none opacity-25">
+            “
+          </span>
+          <div className="-mt-4">{body}</div>
+        </div>
+      </Section>
+    );
+  }
+
+  if (style === "framed" || style === "boxed") {
+    return (
+      <Section divider={false}>
+        <div
+          className={cn(
+            "rounded-3xl px-6 py-9",
+            style === "framed"
+              ? "border border-current/35"
+              : "border border-current/20 bg-white/5 backdrop-blur-sm",
+          )}
+        >
+          {body}
+        </div>
+      </Section>
+    );
+  }
+
+  return <Section divider={false}>{body}</Section>;
 }
 
 export function CoupleBlock({
@@ -766,15 +793,22 @@ export function GalleryBlock({
 }
 
 export function GiftBlock({ content }: { content: InvitationContent }) {
+  const theme = useContext(ThemeContext);
   const toast = useToast();
   if (content.gift.length === 0) return null;
+  const list = theme.gift === "list";
   return (
     <Section title="Amplop Digital" subtitle="Tanpa mengurangi rasa hormat, kado bisa dikirim ke:">
-      <div className="space-y-3">
+      <div className={cn(list ? "divide-y divide-current/15" : "space-y-3")}>
         {content.gift.map((account) => (
           <div
             key={account.id}
-            className="flex items-center justify-between gap-3 rounded-2xl border border-current/15 bg-white/10 p-4 backdrop-blur"
+            className={cn(
+              "flex items-center justify-between gap-3",
+              list
+                ? "py-4 first:pt-0 last:pb-0"
+                : "rounded-2xl border border-current/15 bg-white/10 p-4 backdrop-blur",
+            )}
           >
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-widest opacity-60">{account.bank}</p>
@@ -813,6 +847,26 @@ export function DemoNote({ children }: { children: ReactNode }) {
   );
 }
 
+function WishItem({ wish, plain = false }: { wish: WishRow; plain?: boolean }) {
+  return (
+    <div
+      className={cn(
+        plain
+          ? "border-t border-current/15 pt-4 first:border-t-0 first:pt-0"
+          : "rounded-2xl border border-current/15 bg-white/10 p-4 backdrop-blur",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold">{wish.guest_name}</p>
+        <p className="text-[11px] opacity-50">{formatDateTime(wish.created_at)}</p>
+      </div>
+      <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed opacity-85">
+        {wish.message}
+      </p>
+    </div>
+  );
+}
+
 export function RsvpBlock({
   invitationId,
   guestId,
@@ -831,6 +885,8 @@ export function RsvpBlock({
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+  const theme = useContext(ThemeContext);
+  const cardStyle = theme.rsvp !== "plain";
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -878,7 +934,13 @@ export function RsvpBlock({
           <p className="mt-1 text-sm opacity-75">Konfirmasi kehadiranmu sudah kami terima.</p>
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-4">
+        <form
+          onSubmit={submit}
+          className={cn(
+            "space-y-4",
+            cardStyle && "rounded-2xl border border-current/15 bg-white/10 p-5 backdrop-blur",
+          )}
+        >
           <select
             value={attendance}
             onChange={(e) => setAttendance(e.target.value as RsvpRow["attendance"])}
@@ -941,6 +1003,8 @@ export function WishesBlock({
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const theme = useContext(ThemeContext);
+  const plain = theme.wishes === "plain";
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -971,18 +1035,7 @@ export function WishesBlock({
         <div className="space-y-3">
           <DemoNote>Tamu bisa mengirim ucapan dan doa di undangan asli.</DemoNote>
           {wishes.map((wish) => (
-            <div
-              key={wish.id}
-              className="rounded-2xl border border-current/15 bg-white/10 p-4 backdrop-blur"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold">{wish.guest_name}</p>
-                <p className="text-[11px] opacity-50">{formatDateTime(wish.created_at)}</p>
-              </div>
-              <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed opacity-85">
-                {wish.message}
-              </p>
-            </div>
+            <WishItem key={wish.id} wish={wish} plain={plain} />
           ))}
         </div>
       </Section>
@@ -1023,18 +1076,7 @@ export function WishesBlock({
           <p className="text-center text-sm opacity-60">Jadilah yang pertama memberi ucapan.</p>
         ) : (
           wishes.map((wish) => (
-            <div
-              key={wish.id}
-              className="rounded-2xl border border-current/15 bg-white/10 p-4 backdrop-blur"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold">{wish.guest_name}</p>
-                <p className="text-[11px] opacity-50">{formatDateTime(wish.created_at)}</p>
-              </div>
-              <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed opacity-85">
-                {wish.message}
-              </p>
-            </div>
+            <WishItem key={wish.id} wish={wish} plain={plain} />
           ))
         )}
       </div>
@@ -1101,22 +1143,29 @@ export function MusicPlayer({
 
 export function ClosingBlock({ content }: { content: InvitationContent }) {
   const theme = useContext(ThemeContext);
-  const emphatic = theme.layout === "editorial" || theme.layout === "framed";
+  const style = theme.closing ?? "plain";
   if (!content.closing) return null;
-  return (
-    <Section>
-      <p
-        className={cn(
-          "text-center leading-relaxed",
-          emphatic
-            ? "[font-family:var(--font-heading)] text-lg opacity-90 sm:text-xl"
-            : "text-sm opacity-85",
-        )}
-      >
-        {content.closing}
-      </p>
-    </Section>
+  const big = style === "big";
+  const text = (
+    <p
+      className={cn(
+        "text-center leading-relaxed",
+        big
+          ? "[font-family:var(--font-heading)] text-lg opacity-90 sm:text-xl"
+          : "text-sm opacity-85",
+      )}
+    >
+      {content.closing}
+    </p>
   );
+  if (style === "framed") {
+    return (
+      <Section>
+        <div className="rounded-3xl border border-current/25 px-6 py-8">{text}</div>
+      </Section>
+    );
+  }
+  return <Section>{text}</Section>;
 }
 
 export function Footer({ names }: { names: string }) {
