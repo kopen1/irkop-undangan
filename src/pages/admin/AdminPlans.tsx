@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Pencil } from "lucide-react";
 import { listPlans, listPlanThemes, listThemes, setPlanThemes, upsertPlan } from "../../lib/api";
 import type { PlanRow, ThemeRow } from "../../lib/types";
-import { formatRupiah } from "../../lib/utils";
+import { cn, formatRupiah } from "../../lib/utils";
 import { useToast } from "../../hooks/useToast";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -21,6 +21,17 @@ const FEATURE_KEYS = [
   "foto_mempelai",
   "sosial_media",
 ];
+
+const FEATURE_LABELS: Record<string, string> = {
+  amplop_digital: "Amplop",
+  custom_music: "Musik",
+  galeri: "Galeri",
+  rsvp: "RSVP",
+  tanpa_watermark: "Tanpa WM",
+  domain_custom: "Domain",
+  foto_mempelai: "Foto",
+  sosial_media: "Sosmed",
+};
 
 interface FormState {
   id: string;
@@ -110,6 +121,20 @@ export default function AdminPlans() {
     }
   };
 
+  const toggleFeature = async (plan: PlanRow, feature: string) => {
+    const current = (plan.features ?? {}) as Record<string, boolean>;
+    const features = { ...current, [feature]: !current[feature] };
+    try {
+      await upsertPlan({ id: plan.id, key: plan.key, name: plan.name, features });
+      await load();
+      toast.success(
+        `${FEATURE_LABELS[feature] ?? feature} ${features[feature] ? "diaktifkan" : "dimatikan"}.`,
+      );
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
   if (loading) return <PageLoader label="Memuat plan..." />;
 
   return (
@@ -117,7 +142,7 @@ export default function AdminPlans() {
       <Card>
         <CardHeader title="Plan" description="Atur kuota, harga, dan tema yang tersedia." />
         <CardBody className="overflow-x-auto px-0">
-          <table className="w-full min-w-[760px] text-sm">
+          <table className="w-full min-w-[1080px] text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
                 <th className="px-5 py-3 font-medium">Plan</th>
@@ -128,6 +153,7 @@ export default function AdminPlans() {
                 <th className="px-5 py-3 font-medium">Durasi</th>
                 <th className="px-5 py-3 font-medium">Tema</th>
                 <th className="px-5 py-3 font-medium">Status</th>
+                <th className="px-5 py-3 font-medium">Fitur</th>
                 <th className="px-5 py-3 text-right font-medium">Aksi</th>
               </tr>
             </thead>
@@ -154,6 +180,31 @@ export default function AdminPlans() {
                       <Badge tone={plan.is_active ? "green" : "slate"}>
                         {plan.is_active ? "aktif" : "nonaktif"}
                       </Badge>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex max-w-[16rem] flex-wrap gap-1">
+                        {FEATURE_KEYS.map((key) => {
+                          const on = Boolean(
+                            ((plan.features ?? {}) as Record<string, boolean>)[key],
+                          );
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => toggleFeature(plan, key)}
+                              title={`${FEATURE_LABELS[key] ?? key}: ${on ? "aktif" : "nonaktif"}`}
+                              className={cn(
+                                "rounded-full border px-2 py-0.5 text-[10px] font-medium transition",
+                                on
+                                  ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                                  : "border-slate-300 bg-white text-slate-400 hover:border-slate-400",
+                              )}
+                            >
+                              {FEATURE_LABELS[key] ?? key}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </td>
                     <td className="px-5 py-3 text-right">
                       <Button size="sm" variant="outline" onClick={() => openEdit(plan)}>
