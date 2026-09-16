@@ -6,8 +6,12 @@ Dokumen ini untuk AI/developer berikutnya. Baca ini dulu sebelum mengubah apa pu
   lewat dashboard, lalu bagikan link ke tamu via WhatsApp. Ada panel admin terpisah.
 - **Repo:** `github.com/kopen1/irkop-undangan`
 - **Domain tujuan:** `invite.irkop.eu.org`
-- **Status:** MVP lengkap dan sudah diuji end-to-end di lokal. **Belum ter-deploy**
-  (domain masih 404 karena Cloudflare Pages belum terhubung). Lihat §7 untuk go-live.
+- **Status:** sudah ter-deploy di Cloudflare Pages (`invite.irkop.eu.org`). Sudah ada:
+  login Google via Google Identity Services (ID token), halaman legal, konten premium
+  (foto mempelai, sosial media, hiburan per acara), musik (default/preset/autoplay),
+  sistem template per tema (arketipe + desain section), dan tab Studio. **Untuk sementara
+  semua plan gratis (Rp0) dan seluruh fitur/kuota dibuka**; admin bisa mematikan fitur
+  per plan lewat toggle cepat di tabel Plan. Lihat §7 untuk go-live.
 
 ---
 
@@ -21,6 +25,10 @@ Dokumen ini untuk AI/developer berikutnya. Baca ini dulu sebelum mengubah apa pu
 | Migrasi | Supabase CLI, file di `supabase/migrations/`, di-commit ke git |
 | Deploy | Cloudflare Pages + Pages Functions |
 | Font | Google Fonts dimuat di `src/index.css` |
+
+Login Google memakai **Google Identity Services** (ID token + `signInWithIdToken`), bukan
+redirect lewat `supabase.co`. Foto contoh demo/galeri memakai **Pexels**; audio memakai
+**Mixkit** (bebas royalti, tanpa atribusi). Tidak ada dependensi npm baru untuk itu.
 
 Tidak ada state manager, tidak ada React Query, tidak ada UI kit. Komponen UI ditulis
 sendiri di `src/components/ui/`. Jangan tambahkan dependensi baru tanpa alasan kuat.
@@ -37,9 +45,9 @@ src/
     DashboardHome.tsx          daftar undangan + statistik
     NewInvitationPage.tsx      buat undangan (cek kuota plan di sini)
     InvitationEditor.tsx       shell + tab (state undangan ada di sini)
-    editor/                    EditorDetailTab, EditorContentTab, EditorGalleryTab,
-                               EditorGuestsTab, EditorRsvpTab, EditorWishesTab,
-                               EditorPlanTab, types.ts
+    editor/                    EditorDetailTab, EditorStudioTab (cover, urutan/gaya/latar
+                               section), EditorContentTab, EditorGalleryTab, EditorGuestsTab,
+                               EditorRsvpTab, EditorWishesTab, EditorPlanTab, types.ts
     ProfilePage.tsx
     DashboardPricing.tsx
   pages/admin/                 AdminOverview, AdminUsers, AdminThemes, AdminPlans,
@@ -59,7 +67,8 @@ src/
     database.types.ts          tipe Database (ditulis manual, bukan hasil generate)
     types.ts                   tipe domain + parseContent + planHasFeature
     api.ts                     SEMUA akses data lewat sini
-    theme-tokens.ts            katalog 12 tema
+    theme-tokens.ts            katalog 12 tema + token desain (arketipe, cover, dst)
+    stock-photos.ts            foto contoh Pexels (demo + kartu galeri tema)
     demo.ts                    data contoh untuk halaman demo
     utils.ts, constants.ts, image.ts (kompresi gambar), supabase.ts
   components/
@@ -68,9 +77,12 @@ src/
     plans/PlanCards.tsx        kartu paket (dipakai landing, pricing, dashboard)
     themes/ThemeGallery.tsx    galeri tema
     auth/RouteGuards.tsx       RequireAuth, RequireAdmin
-supabase/migrations/           9 migrasi berurutan (0000..0008)
+    auth/GoogleSignInButton.tsx tombol Google via Google Identity Services
+  pages/legal/                 PrivacyPolicyPage, TermsPage, LegalShell
+supabase/migrations/           11 migrasi berurutan (0000..0010)
 supabase/setup.sql             GABUNGAN semua migrasi (untuk paste ke SQL Editor)
 functions/                     Cloudflare Pages Functions (og:title/og:image)
+public/_headers                no-store untuk index.html, immutable untuk /assets/*
 scripts/db-push.mjs            push migrasi pakai SUPABASE_DB_PASSWORD dari .env
 ```
 
@@ -86,16 +98,31 @@ scripts/db-push.mjs            push migrasi pakai SUPABASE_DB_PASSWORD dari .env
 - **Error handling:** `api.ts` melempar `Error`. Komponen menangkapnya dan menampilkan
   lewat `useToast()`. Jangan `console.log` untuk error yang terlihat user.
 - **Fitur berbayar:** dicek lewat `planHasFeature(invitation.plan, "nama_fitur")`.
+  Fitur yang ada: `amplop_digital`, `custom_music`, `galeri`, `rsvp`,
+  `tanpa_watermark`, `domain_custom`, `foto_mempelai`, `sosial_media`.
   Kuota angka dibaca dari `invitation.plan` (`max_guests`, `max_photos`,
-  `max_invitations`), **jangan hardcode**.
-- **Tema:** jangan bikin komponen tema baru. Tambahkan token di
-  `src/lib/theme-tokens.ts` + baris di tabel `themes` dengan `key` yang sama.
+  `max_invitations`), **jangan hardcode**. Semua fitur bisa di-on/off admin lewat
+  toggle di tabel Plan.
+- **Tema/template:** satu `ThemeRenderer` + token di `src/lib/theme-tokens.ts`.
+  Tiap tema punya arketipe `layout`, `coverStyle`, dan desain section (`header`,
+  `couple`, `events`, `story`, `gallery`, `opening`, `closing`, `gift`, `wishes`,
+  `rsvp`, `divider`, `decor`, `nameFont`, `coverTagline`). Tambah tema = tambah
+  entri `THEMES` + baris tabel `themes` dengan `key` yang sama.
+- **Upload gambar:** maks 2 MB (ditolak sebelum proses) + kompresi di
+  `src/lib/image.ts` (target ≤900 KB, turunkan kualitas lalu perkecil dimensi).
+- **Konten:** `InvitationContent` punya `layout` (cover + urutan section) dan
+  `socials` (dengan `owner` pria/wanita), `groom_photo`, `bride_photo`,
+  `events[].entertainment`, `music_enabled`. Kosong = tidak tampil.
 - **Tanpa emoji** di UI maupun kode.
 
 ## 4. Database
 
 10 tabel: `profiles`, `plans`, `themes`, `plan_themes`, `reserved_slugs`,
 `invitations`, `guests`, `rsvp`, `wishes`, `orders`. RLS aktif di semuanya.
+
+Migrasi terakhir: `0009_premium_content` (flag `foto_mempelai` & `sosial_media`) dan
+`0010_free_plans` (semua plan Rp0 + seluruh fitur/kuota dibuka; admin bisa mematikan
+fitur lagi lewat toggle di tabel Plan, tanpa ubah kode).
 
 Poin penting:
 
@@ -134,7 +161,12 @@ di `supabase/migrations/`, urut nama) supaya pengguna tanpa CLI tetap bisa setup
 
 ## 5. Auth
 
-- Email + password dan Google OAuth, keduanya sudah terpasang di kode.
+- Email + password dan login Google via **Google Identity Services** (ID token).
+  `GoogleSignInButton` memuat script GIS, membuat nonce, lalu memanggil
+  `supabase.auth.signInWithIdToken`. Secret Google **tidak** pernah dikirim ke browser.
+- Client ID Google diisi di `VITE_GOOGLE_CLIENT_ID` (juga wajib di env Cloudflare).
+  GCP: tambahkan **Authorized JavaScript origins** `https://invite.irkop.eu.org` dan
+  `http://localhost:5173`; redirect URI Supabase tetap dipertahankan sebagai cadangan.
 - `VITE_APP_URL=auto` membuat link undangan mengikuti `window.location.origin`
   (localhost / IP LAN / domain produksi) tanpa ganti config. Nilai `auto` juga
   ditangani di Pages Function.
@@ -181,6 +213,7 @@ Kerjakan berurutan. Jangan lompat ke §7.4 sebelum §7.2 selesai.
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `VITE_APP_URL=auto`
+   - `VITE_GOOGLE_CLIENT_ID` (client ID OAuth Google)
    - `SUPABASE_URL` (untuk Functions, tanpa prefix VITE_)
    - `SUPABASE_ANON_KEY`
    - `APP_URL=auto`
@@ -292,6 +325,12 @@ Baca sebelum debug — semuanya nyata dan sudah diperbaiki sekali.
    manual di `check-themes` (lihat §9).
 7. **Rahasia hanya di `.env.local`, bukan `.env`.** `.env` ikut ter-commit dan isinya
    terkirim ke browser; `.env.local` di-ignore. Lihat §11.
+8. **HTML/chunk lama bikin halaman blank.** HTML shell sudah `no-store` lewat
+   `public/_headers`, aset content-hashed `immutable`. Kalau masih terlihat versi lama,
+   minta user hard refresh / incognito (cache browser menunjuk chunk lama yang 404).
+9. **`npm run db:push` tidak jalan di Termux** (binary Supabase CLI butuh glibc). Untuk
+   push dari Termux: koneksi pooler region project (`ap-northeast-1`) + client `pg`.
+   Kalau Functions gagal memuat data, cek `SUPABASE_URL`/`SUPABASE_ANON_KEY` di dashboard.
 
 ## 9. Perintah
 
@@ -329,7 +368,7 @@ Aturan pembagiannya:
 
 | File | Status | Isi |
 |---|---|---|
-| `.env` | **di-commit** | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_APP_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `APP_URL` |
+| `.env` | **di-commit** | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GOOGLE_CLIENT_ID`, `VITE_APP_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `APP_URL` |
 | `.env.local` | di-ignore (`.env.*`) | `SUPABASE_DB_PASSWORD` |
 | `.env.example` | di-commit | placeholder, untuk dokumentasi |
 

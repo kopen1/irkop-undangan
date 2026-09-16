@@ -34,6 +34,59 @@ function Corner({ className }: { className?: string }) {
   );
 }
 
+function DecoCorner({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 120 120" className={className} fill="none" stroke="currentColor">
+      <path d="M2 60C2 28 28 2 60 2" strokeWidth="1" opacity="0.5" />
+      <path d="M10 60C10 34 34 10 60 10" strokeWidth="0.7" opacity="0.35" />
+      <path d="M2 60h26M60 2v26" strokeWidth="0.7" opacity="0.4" />
+      <path d="M22 22l14 6-6 14z" strokeWidth="0.8" opacity="0.5" />
+      <circle cx="60" cy="2" r="2" fill="currentColor" stroke="none" opacity="0.6" />
+      <circle cx="2" cy="60" r="2" fill="currentColor" stroke="none" opacity="0.6" />
+    </svg>
+  );
+}
+
+function LeafBranch({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 80 160" className={className} fill="none" stroke="currentColor">
+      <path d="M40 0c18 50 18 110 0 160" strokeWidth="1" opacity="0.45" />
+      {[24, 52, 80, 108, 136].map((y) => (
+        <g key={y} opacity="0.35">
+          <path d={`M40 ${y}c-12 4-20 12-24 24`} strokeWidth="0.7" />
+          <path d={`M40 ${y}c12 4 20 12 24 24`} strokeWidth="0.7" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function SakuraBranch({ className }: { className?: string }) {
+  const blooms: Array<[number, number]> = [
+    [34, 34],
+    [74, 56],
+    [116, 88],
+    [142, 120],
+  ];
+  return (
+    <svg viewBox="0 0 200 160" className={className} fill="none" stroke="currentColor">
+      <path d="M0 20c40 10 80 30 130 80" strokeWidth="1" opacity="0.4" />
+      <path
+        d="M30 30c10 2 18 8 24 16M70 52c10 2 18 8 24 16M110 84c10 2 18 8 24 16"
+        strokeWidth="0.8"
+        opacity="0.35"
+      />
+      {blooms.map(([x, y], index) => (
+        <g key={index} transform={`translate(${x} ${y})`} fill="currentColor" opacity="0.5">
+          {[0, 72, 144, 216, 288].map((angle) => (
+            <ellipse key={angle} cx="0" cy="-6" rx="3.2" ry="5.5" transform={`rotate(${angle})`} />
+          ))}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 function Minimal() {
   return (
     <>
@@ -73,6 +126,7 @@ function Floral() {
     <>
       <Flower className="absolute -left-6 -top-4 h-40 w-40 opacity-40 sm:h-56 sm:w-56" />
       <Flower className="absolute -bottom-6 -right-6 h-40 w-40 rotate-180 opacity-40 sm:h-56 sm:w-56" />
+      <LeafBranch className="absolute right-2 top-8 h-40 w-16 rotate-12 opacity-25" />
       <div className="absolute left-1/4 top-1/3 h-24 w-24 rounded-full bg-current opacity-[0.04] blur-2xl" />
     </>
   );
@@ -139,6 +193,10 @@ function Gold() {
     <>
       <div className="absolute inset-3 border border-current opacity-25 sm:inset-5" />
       <div className="absolute inset-5 border border-current opacity-10 sm:inset-8" />
+      <DecoCorner className="absolute left-3 top-3 h-14 w-14 opacity-50 sm:h-20 sm:w-20" />
+      <DecoCorner className="absolute right-3 top-3 h-14 w-14 rotate-90 opacity-50 sm:h-20 sm:w-20" />
+      <DecoCorner className="absolute bottom-3 right-3 h-14 w-14 rotate-180 opacity-50 sm:h-20 sm:w-20" />
+      <DecoCorner className="absolute bottom-3 left-3 h-14 w-14 -rotate-90 opacity-50 sm:h-20 sm:w-20" />
       <svg viewBox="0 0 200 60" className="absolute left-1/2 top-6 h-10 w-44 -translate-x-1/2 opacity-50" fill="none" stroke="currentColor">
         <path d="M0 30h70M130 30h70" strokeWidth="0.8" />
         <path d="M100 16l10 14-10 14-10-14z" strokeWidth="0.8" />
@@ -222,6 +280,8 @@ function Geometric() {
         </svg>
       </div>
       <div className="absolute inset-x-6 top-12 border-t border-current opacity-20" />
+      <DecoCorner className="absolute left-2 top-2 h-12 w-12 opacity-40 sm:h-16 sm:w-16" />
+      <DecoCorner className="absolute bottom-2 right-2 h-12 w-12 rotate-180 opacity-40 sm:h-16 sm:w-16" />
     </>
   );
 }
@@ -254,6 +314,7 @@ function Sakura() {
           <path d="M20 4c7 6 11 12 11 18a11 11 0 11-22 0c0-6 4-12 11-18z" />
         </svg>
       ))}
+      <SakuraBranch className="absolute -left-6 -top-8 h-44 w-64 opacity-40" />
       <div className="absolute -right-16 top-1/3 h-56 w-56 rounded-full bg-current opacity-[0.05] blur-3xl" />
     </>
   );

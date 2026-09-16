@@ -544,6 +544,14 @@ const NAME_FONT_BY_THEME: Record<string, NameFont> = {
   "sakura-zen": "script",
 };
 
+/** Latar ilustratif halus yang ditempel ke halaman tema. */
+const EXTRA_BG: Record<string, string> = {
+  "luxury-gold": "bg-gold-glow",
+  "cinematic-dark": "bg-cinematic",
+  "sakura-zen": "bg-sakura",
+  "tropical-bali": "bg-tropical",
+};
+
 for (const [index, theme] of THEMES.entries()) {
   theme.preview_image = WEDDING_PHOTOS[index % WEDDING_PHOTOS.length];
   theme.layout = LAYOUT_BY_THEME[theme.key] ?? "floral";
@@ -557,6 +565,7 @@ for (const [index, theme] of THEMES.entries()) {
   theme.rsvp = RSVP_BY_THEME[theme.key] ?? "card";
   theme.nameFont = NAME_FONT_BY_THEME[theme.key] ?? "heading";
   theme.coverTagline = COVER_TAGLINE_BY_THEME[theme.key];
+  if (EXTRA_BG[theme.key]) theme.page = `${theme.page} ${EXTRA_BG[theme.key]}`;
   const design = DESIGN_BY_THEME[theme.key];
   if (design) {
     theme.header = design.header;
