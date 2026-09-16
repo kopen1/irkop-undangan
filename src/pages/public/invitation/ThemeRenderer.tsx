@@ -194,6 +194,7 @@ export default function ThemeRenderer({
           coverStyle={cover}
           eventDate={invitation.event_date}
           nameFont={tokens.nameFont}
+          coverTagline={tokens.coverTagline}
         />
       ) : null}
 

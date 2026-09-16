@@ -47,6 +47,7 @@ import {
   type NameFont,
   type OrnamentKind,
   type ThemeTokens,
+  type WishesStyle,
 } from "../../../lib/theme-tokens";
 import { Ornament } from "./ornaments";
 
@@ -117,6 +118,7 @@ export function CoverGate({
   coverStyle = "centered",
   eventDate = null,
   nameFont = "heading",
+  coverTagline = "",
 }: {
   invitation: InvitationFull;
   guestName: string | null;
@@ -127,6 +129,7 @@ export function CoverGate({
   coverStyle?: CoverStyle;
   eventDate?: string | null;
   nameFont?: NameFont;
+  coverTagline?: string;
 }) {
   const full = coverStyle === "full";
   const framed = coverStyle === "framed";
@@ -188,6 +191,11 @@ export function CoverGate({
           <span className="mx-3 opacity-60">&amp;</span>
           {invitation.bride_name || "Mempelai"}
         </h1>
+        {coverTagline ? (
+          <p className="mt-2 text-xs uppercase tracking-[0.3em] opacity-80 sm:text-sm">
+            {coverTagline}
+          </p>
+        ) : null}
         {coverStyle !== "centered" && coverStyle !== "minimal" ? (
           <SectionDivider className="mt-5" />
         ) : null}
@@ -222,7 +230,11 @@ export function CoverGate({
             </a>
           ) : null}
         </div>
-        {eventDate ? <Countdown date={eventDate} className="mx-auto mt-8 w-full max-w-xs" /> : null}
+        {eventDate ? (
+          <div className="mx-auto mt-8 w-full max-w-xs rounded-2xl border border-current/20 bg-white/10 px-3 py-4 backdrop-blur">
+            <Countdown date={eventDate} />
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -391,6 +403,8 @@ export function CoupleBlock({
 }) {
   const theme = useContext(ThemeContext);
   const style = theme.couple ?? "circles";
+  const nameStyle =
+    theme.nameFont === "script" ? { fontFamily: SCRIPT_FONT, fontWeight: 400 } : undefined;
   const groom = invitation.groom_name || "?";
   const bride = invitation.bride_name || "?";
   const people = [
@@ -411,7 +425,10 @@ export function CoupleBlock({
             {people.map((person) => (
               <div key={person.role}>
                 <p className="text-xs uppercase tracking-[0.2em] opacity-60">{person.role}</p>
-                <p className="mt-1 [font-family:var(--font-heading)] text-xl font-semibold">
+                <p
+                  className="mt-1 [font-family:var(--font-heading)] text-xl font-semibold"
+                  style={nameStyle}
+                >
                   {person.name}
                 </p>
               </div>
@@ -439,7 +456,10 @@ export function CoupleBlock({
                 )}
               </div>
               <p className="mt-4 text-xs uppercase tracking-[0.25em] opacity-60">{person.role}</p>
-              <p className="mt-1 [font-family:var(--font-heading)] text-2xl font-semibold">
+              <p
+                className="mt-1 [font-family:var(--font-heading)] text-2xl font-semibold"
+                style={nameStyle}
+              >
                 {person.name}
               </p>
             </div>
@@ -467,7 +487,10 @@ export function CoupleBlock({
                     </div>
                   )}
                 </div>
-                <p className="mt-4 [font-family:var(--font-heading)] text-2xl font-semibold">
+                <p
+                  className="mt-4 [font-family:var(--font-heading)] text-2xl font-semibold"
+                  style={nameStyle}
+                >
                   {person.name}
                 </p>
                 <p className="mt-2 text-xs uppercase tracking-[0.25em] opacity-60">{person.role}</p>
@@ -493,7 +516,7 @@ export function CoupleBlock({
               )}
             </div>
             <p className="mt-4 text-xs uppercase tracking-[0.2em] opacity-60">{person.role}</p>
-            <p className="mt-1 [font-family:var(--font-heading)] text-xl font-semibold">{person.name}</p>
+                <p className="mt-1 [font-family:var(--font-heading)] text-xl font-semibold" style={nameStyle}>{person.name}</p>
             <p className="mt-1 text-xs opacity-60">{initial}</p>
           </div>
         ))}
@@ -892,15 +915,15 @@ export function DemoNote({ children }: { children: ReactNode }) {
   );
 }
 
-function WishItem({ wish, plain = false }: { wish: WishRow; plain?: boolean }) {
+function WishItem({ wish, variant = "cards" }: { wish: WishRow; variant?: WishesStyle }) {
+  const base =
+    variant === "plain"
+      ? "border-t border-current/15 pt-4 first:border-t-0 first:pt-0"
+      : variant === "panel"
+        ? "rounded-t-3xl rounded-b-2xl border border-current/20 bg-white/10 p-5 backdrop-blur"
+        : "rounded-2xl border border-current/15 bg-white/10 p-4 backdrop-blur";
   return (
-    <div
-      className={cn(
-        plain
-          ? "border-t border-current/15 pt-4 first:border-t-0 first:pt-0"
-          : "rounded-2xl border border-current/15 bg-white/10 p-4 backdrop-blur",
-      )}
-    >
+    <div className={cn(base)}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">{wish.guest_name}</p>
         <p className="text-[11px] opacity-50">{formatDateTime(wish.created_at)}</p>
@@ -931,7 +954,7 @@ export function RsvpBlock({
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const theme = useContext(ThemeContext);
-  const cardStyle = theme.rsvp !== "plain";
+  const rsvpStyle = theme.rsvp ?? "card";
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -983,7 +1006,10 @@ export function RsvpBlock({
           onSubmit={submit}
           className={cn(
             "space-y-4",
-            cardStyle && "rounded-2xl border border-current/15 bg-white/10 p-5 backdrop-blur",
+            rsvpStyle === "panel" &&
+              "rounded-t-[2rem] rounded-b-2xl border border-current/20 bg-white/10 p-6 backdrop-blur",
+            rsvpStyle === "card" &&
+              "rounded-2xl border border-current/15 bg-white/10 p-5 backdrop-blur",
           )}
         >
           <select
@@ -1049,7 +1075,7 @@ export function WishesBlock({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const theme = useContext(ThemeContext);
-  const plain = theme.wishes === "plain";
+  const wishesStyle = theme.wishes ?? "cards";
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -1080,7 +1106,7 @@ export function WishesBlock({
         <div className="space-y-3">
           <DemoNote>Tamu bisa mengirim ucapan dan doa di undangan asli.</DemoNote>
           {wishes.map((wish) => (
-            <WishItem key={wish.id} wish={wish} plain={plain} />
+            <WishItem key={wish.id} wish={wish} variant={wishesStyle} />
           ))}
         </div>
       </Section>
@@ -1121,7 +1147,7 @@ export function WishesBlock({
           <p className="text-center text-sm opacity-60">Jadilah yang pertama memberi ucapan.</p>
         ) : (
           wishes.map((wish) => (
-            <WishItem key={wish.id} wish={wish} plain={plain} />
+            <WishItem key={wish.id} wish={wish} variant={wishesStyle} />
           ))
         )}
       </div>

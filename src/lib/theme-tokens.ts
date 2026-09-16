@@ -55,9 +55,9 @@ export type DecorStyle = "none" | "frame" | "vignette";
 /** Gaya blok amplop digital per tema. */
 export type GiftStyle = "cards" | "list";
 /** Gaya daftar ucapan per tema. */
-export type WishesStyle = "cards" | "plain";
+export type WishesStyle = "cards" | "plain" | "panel";
 /** Gaya blok RSVP per tema. */
-export type RsvpStyle = "card" | "plain";
+export type RsvpStyle = "card" | "plain" | "panel";
 /** Font nama mempelai: heading tema atau script. */
 export type NameFont = "heading" | "script";
 
@@ -96,6 +96,7 @@ export interface ThemeTokens {
   wishes?: WishesStyle;
   rsvp?: RsvpStyle;
   nameFont?: NameFont;
+  coverTagline?: string;
   /** Foto contoh untuk kartu galeri tema (bukan screenshot tema). */
   preview_image?: string;
   /** Dipakai galeri tema untuk menggambar thumbnail (tanpa file gambar). */
@@ -498,11 +499,39 @@ const WISHES_BY_THEME: Record<string, WishesStyle> = {
   "rustic-boho": "plain",
   "vintage-retro": "plain",
   "cinematic-dark": "plain",
+  "elegan-floral": "panel",
+  "luxury-gold": "panel",
+  "islamic-arabesque": "panel",
+  "tropical-bali": "panel",
+  "sakura-zen": "panel",
+  "adat-tradisional": "panel",
 };
 
 const RSVP_BY_THEME: Record<string, RsvpStyle> = {
   "modern-minimalist": "plain",
   "cinematic-dark": "plain",
+  "elegan-floral": "panel",
+  "luxury-gold": "panel",
+  "islamic-arabesque": "panel",
+  "tropical-bali": "panel",
+  "sakura-zen": "panel",
+  "adat-tradisional": "panel",
+  "vintage-retro": "panel",
+};
+
+const COVER_TAGLINE_BY_THEME: Record<string, string> = {
+  "modern-minimalist": "Our Wedding Day",
+  "aesthetic-putih": "We're getting married",
+  "elegan-floral": "We're getting married",
+  "rustic-boho": "Our Wedding Day",
+  "adat-tradisional": "We're getting married",
+  "luxury-gold": "Together with joy",
+  "marble-elegan": "The Wedding Of",
+  "islamic-arabesque": "We're getting married",
+  "tropical-bali": "Our Wedding Day",
+  "vintage-retro": "We're getting married",
+  "sakura-zen": "Our Wedding Day",
+  "cinematic-dark": "Save the date",
 };
 
 const NAME_FONT_BY_THEME: Record<string, NameFont> = {
@@ -527,6 +556,7 @@ for (const [index, theme] of THEMES.entries()) {
   theme.wishes = WISHES_BY_THEME[theme.key] ?? "cards";
   theme.rsvp = RSVP_BY_THEME[theme.key] ?? "card";
   theme.nameFont = NAME_FONT_BY_THEME[theme.key] ?? "heading";
+  theme.coverTagline = COVER_TAGLINE_BY_THEME[theme.key];
   const design = DESIGN_BY_THEME[theme.key];
   if (design) {
     theme.header = design.header;
