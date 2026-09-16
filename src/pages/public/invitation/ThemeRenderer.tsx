@@ -192,6 +192,8 @@ export default function ThemeRenderer({
           accentClass={tokens.coverButton}
           ornamentKind={tokens.ornament}
           coverStyle={cover}
+          eventDate={invitation.event_date}
+          nameFont={tokens.nameFont}
         />
       ) : null}
 

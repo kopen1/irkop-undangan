@@ -58,6 +58,8 @@ export type GiftStyle = "cards" | "list";
 export type WishesStyle = "cards" | "plain";
 /** Gaya blok RSVP per tema. */
 export type RsvpStyle = "card" | "plain";
+/** Font nama mempelai: heading tema atau script. */
+export type NameFont = "heading" | "script";
 
 export interface ThemeTokens {
   key: string;
@@ -93,6 +95,7 @@ export interface ThemeTokens {
   gift?: GiftStyle;
   wishes?: WishesStyle;
   rsvp?: RsvpStyle;
+  nameFont?: NameFont;
   /** Foto contoh untuk kartu galeri tema (bukan screenshot tema). */
   preview_image?: string;
   /** Dipakai galeri tema untuk menggambar thumbnail (tanpa file gambar). */
@@ -502,6 +505,16 @@ const RSVP_BY_THEME: Record<string, RsvpStyle> = {
   "cinematic-dark": "plain",
 };
 
+const NAME_FONT_BY_THEME: Record<string, NameFont> = {
+  "elegan-floral": "script",
+  "adat-tradisional": "script",
+  "luxury-gold": "script",
+  "islamic-arabesque": "script",
+  "tropical-bali": "script",
+  "vintage-retro": "script",
+  "sakura-zen": "script",
+};
+
 for (const [index, theme] of THEMES.entries()) {
   theme.preview_image = WEDDING_PHOTOS[index % WEDDING_PHOTOS.length];
   theme.layout = LAYOUT_BY_THEME[theme.key] ?? "floral";
@@ -513,6 +526,7 @@ for (const [index, theme] of THEMES.entries()) {
   theme.gift = GIFT_BY_THEME[theme.key] ?? "cards";
   theme.wishes = WISHES_BY_THEME[theme.key] ?? "cards";
   theme.rsvp = RSVP_BY_THEME[theme.key] ?? "card";
+  theme.nameFont = NAME_FONT_BY_THEME[theme.key] ?? "heading";
   const design = DESIGN_BY_THEME[theme.key];
   if (design) {
     theme.header = design.header;

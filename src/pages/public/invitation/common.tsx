@@ -42,7 +42,12 @@ import type {
 import { ATTENDANCE_LABELS } from "../../../lib/constants";
 import { cn, formatDate, formatDateTime } from "../../../lib/utils";
 import { useToast } from "../../../hooks/useToast";
-import { THEMES, type OrnamentKind, type ThemeTokens } from "../../../lib/theme-tokens";
+import {
+  THEMES,
+  type NameFont,
+  type OrnamentKind,
+  type ThemeTokens,
+} from "../../../lib/theme-tokens";
 import { Ornament } from "./ornaments";
 
 /* -------------------------------------------------------------------------- */
@@ -53,6 +58,23 @@ const ThemeContext = createContext<ThemeTokens>(THEMES[0]);
 
 export function ThemeProvider({ value, children }: { value: ThemeTokens; children: ReactNode }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
+/** Font script untuk nama mempelai pada tema tertentu. */
+const SCRIPT_FONT = "'Great Vibes', cursive";
+
+/** Link "Save the Date" ke Google Calendar (acara seharian). */
+function calendarUrl(invitation: InvitationFull): string | null {
+  if (!invitation.event_date) return null;
+  const date = invitation.event_date.replace(/-/g, "");
+  if (date.length !== 8) return null;
+  const names = [invitation.groom_name, invitation.bride_name].filter(Boolean).join(" & ");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: names ? `Pernikahan ${names}` : "Pernikahan",
+    dates: `${date}/${date}`,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
 export function SectionDivider({
@@ -93,6 +115,8 @@ export function CoverGate({
   bgClass,
   ornamentKind,
   coverStyle = "centered",
+  eventDate = null,
+  nameFont = "heading",
 }: {
   invitation: InvitationFull;
   guestName: string | null;
@@ -101,6 +125,8 @@ export function CoverGate({
   bgClass: string;
   ornamentKind?: OrnamentKind;
   coverStyle?: CoverStyle;
+  eventDate?: string | null;
+  nameFont?: NameFont;
 }) {
   const full = coverStyle === "full";
   const framed = coverStyle === "framed";
@@ -110,6 +136,7 @@ export function CoverGate({
   const minimal = coverStyle === "minimal";
   const inlineImage = invitation.cover_image && (split || panel || arch);
   const backgroundImage = invitation.cover_image && !inlineImage;
+  const calendar = calendarUrl(invitation);
   return (
     <div
       className={cn(
@@ -148,9 +175,14 @@ export function CoverGate({
         <p className="text-xs uppercase tracking-[0.3em] opacity-70">Undangan Pernikahan</p>
         <h1
           className={cn(
-            "mt-4 [font-family:var(--font-heading)] font-semibold",
+            "mt-4 font-semibold",
             minimal ? "text-2xl sm:text-4xl" : "text-3xl sm:text-5xl",
           )}
+          style={
+            nameFont === "script"
+              ? { fontFamily: SCRIPT_FONT, fontWeight: 400, lineHeight: 1.1 }
+              : undefined
+          }
         >
           {invitation.groom_name || "Mempelai"}
           <span className="mx-3 opacity-60">&amp;</span>
@@ -168,16 +200,29 @@ export function CoverGate({
           </div>
         ) : null}
 
-        <button
-          type="button"
-          onClick={onOpen}
-          className={cn(
-            "mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-medium transition hover:scale-[1.03]",
-            accentClass,
-          )}
-        >
-          <Heart className="h-4 w-4" /> Buka Undangan
-        </button>
+        <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={onOpen}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-medium transition hover:scale-[1.03]",
+              accentClass,
+            )}
+          >
+            <Heart className="h-4 w-4" /> Buka Undangan
+          </button>
+          {calendar ? (
+            <a
+              href={calendar}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-current/40 px-7 py-3 text-sm font-medium transition hover:bg-current/10"
+            >
+              <CalendarDays className="h-4 w-4" /> Save the Date
+            </a>
+          ) : null}
+        </div>
+        {eventDate ? <Countdown date={eventDate} className="mx-auto mt-8 w-full max-w-xs" /> : null}
       </div>
     </div>
   );
